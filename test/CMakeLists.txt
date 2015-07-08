@@ -1,7 +1,17 @@
 cmake_minimum_required(VERSION 3.0)
 project(skrillex_tests)
 
+# GTest Setup
+add_subdirectory (gtest)
+include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
+
 FILE(GLOB_RECURSE all_test_sources "*.cpp")
+FOREACH(item ${all_test_sources})
+  IF(${item} MATCHES "gtest/")
+    LIST(REMOVE_ITEM all_test_sources ${item})
+  ENDIF(${item} MATCHES "gtest/")
+ENDFOREACH(item)
+MESSAGE(STATUS "${all_test_sources}")
 
 # Unit Test
 add_executable(skrillex_tests ${all_test_sources})
