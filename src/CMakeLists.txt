@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 3.0.0)
+project(skrillex)
+
+file(GLOB_RECURSE skrillex_srcs
+    "*.cpp"
+)
+
+add_library(skrillex STATIC ${skrillex_srcs})
+
+set_target_properties(skrillex PROPERTIES PREFIX "")
+install(TARGETS skrillex DESTINATION bin)

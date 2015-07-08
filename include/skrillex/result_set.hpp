@@ -23,20 +23,34 @@
 #ifndef skrillex_result_set_hpp
 #define skrillex_result_set_hpp
 
-#include "skrillex/db_objects.hpp"
+#include <vector>
+#include "skrillex/dbo.hpp"
 
 namespace skrillex {
+    template<typename T>
+    class ResultSet {
+        std::vector<T> data_;
+        int            data_version_;
 
-template<typename T>
-class ResultSet {
-    std::vector<T> data_;
-};
+    public:
+        ResultSet();
 
-// Explicit instantiation of used types.
-typedef ResultSet<Song>   SongSet;
-typedef ResultSet<Artist> ArtistSet;
-typedef ResultSet<Genre>  GenreSet;
+        class iterator {
+        public:
+            T&        operator*();
 
+            bool      operator==(const iterator& o) const;
+            bool      operator!=(const iterator& o) const;
+
+            iterator& operator=(const iterator& o);
+            iterator& operator++();
+        };
+
+        iterator begin() const;
+        iterator end() const;
+
+        int getDataVersion() const;
+    };
 }
 
 #endif
