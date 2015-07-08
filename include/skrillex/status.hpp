@@ -51,6 +51,10 @@ namespace skrillex {
         bool notFound() const { return code_ == Code::NotFound; }
         bool error() const    { return code_ == Code::Error; }
 
+        std::string message() const {
+            return message_;
+        }
+
         std::string string() const {
             switch (code_) {
                 case Code::OK:       return "Status: OK";
