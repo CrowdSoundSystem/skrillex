@@ -30,47 +30,52 @@
 #include "skrillex/dbo.hpp"
 
 namespace skrillex {
-    namespace internal {
-        template<typename T>
-        class ResultSet;
 
-        template<typename T>
-        typename ResultSet<T>::iterator mbegin(ResultSet<T>& rs) {
-            return rs.data_.begin();
-        }
-    }
+template<typename T>
+class ResultSet;
+
+namespace internal {
     template<typename T>
-    class ResultSet {
-        std::vector<T> data_;
-        int            data_version_;
+    typename ResultSet<T>::iterator mbegin(ResultSet<T>& rs);
+}
 
-    public:
-        typedef typename std::vector<T>::iterator       iterator;
-        typedef typename std::vector<T>::const_iterator const_iterator;
+template<typename T>
+class ResultSet {
+    std::vector<T> data_;
+    int            data_version_;
 
-        // This is really only intended a mutable mutator isn't used,
-        // unless very explicitly desired (like, you have to read the
-        // source code to get to it.
-        //
-        // Yes, I realize this can't stop you from mutating a set,
-        // but honestly, if you're going to try this hard to mutate
-        // the set, then hopefully you've at least read the documentation
-        // and at least the code, so you know what you're doing.
-        template<typename U> friend iterator internal::mbegin(ResultSet<U>&);
-    private:
-        iterator mbegin() { return data_.begin(); }
-        iterator mend()   { return data_.begin(); }
+public:
+    typedef typename std::vector<T>::iterator       iterator;
+    typedef typename std::vector<T>::const_iterator const_iterator;
 
-    public:
-        ResultSet() { }
+    // This is really only intended a mutable mutator isn't used,
+    // unless very explicitly desired (like, you have to read the
+    // source code to get to it.
+    //
+    // Yes, I realize this can't stop you from mutating a set,
+    // but honestly, if you're going to try this hard to mutate
+    // the set, then hopefully you've at least read the documentation
+    // and at least the code, so you know what you're doing.
+    friend ResultSet<T>::iterator internal::mbegin<T>(ResultSet<T>&);
+private:
+    iterator mbegin() { return data_.begin(); }
+    iterator mend()   { return data_.begin(); }
 
-        int size() const { return data_.size(); }
+public:
+    ResultSet() { }
 
-        const_iterator begin() const { return data_.begin(); }
-        const_iterator end()   const { return data_.end(); }
-    };
+    int size() const { return data_.size(); }
 
+    const_iterator begin() const { return data_.begin(); }
+    const_iterator end()   const { return data_.end(); }
+};
 
+namespace internal {
+    template<typename T>
+    typename ResultSet<T>::iterator mbegin(ResultSet<T>& rs) {
+        return rs.data_.begin();
+    }
+}
 
 }
 #endif
