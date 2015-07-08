@@ -22,10 +22,9 @@
 
 #include "skrillex/options.hpp"
 #include "skrillex/result_set.hpp"
+#include "skrillex/status.hpp"
 
 namespace skrillex {
-    class Status;
-
     class DB {
     public:
         Status getSongs(ResultSet<Song>& set);
