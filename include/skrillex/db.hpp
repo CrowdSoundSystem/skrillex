@@ -20,9 +20,15 @@
 
 #include <memory>
 #include "skrillex/options.hpp"
+#include "skrillex/result_set.hpp"
+#include "skrillex/status.hpp"
 
 namespace skrillex {
+
+class Iterator;
+
 class DB {
+
 };
 
 }
