@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.0)
 project(skrillex_tests)
 
+# Test the internels too
+include_directories(../src)
+
 # GTest Setup
 add_subdirectory (gtest)
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})

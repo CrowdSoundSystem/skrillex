@@ -30,53 +30,44 @@
 #include "skrillex/dbo.hpp"
 
 namespace skrillex {
-
-template<typename T>
-class ResultSet;
-
-namespace internal {
-    template<typename T>
-    typename ResultSet<T>::iterator mbegin(ResultSet<T>& rs);
-}
-
-template<typename T>
-class ResultSet {
-    std::vector<T> data_;
-    int            data_version_;
-
-public:
-    typedef typename std::vector<T>::iterator       iterator;
-    typedef typename std::vector<T>::const_iterator const_iterator;
-
-    // This is really only intended a mutable mutator isn't used,
-    // unless very explicitly desired (like, you have to read the
-    // source code to get to it.
-    //
-    // Yes, I realize this can't stop you from mutating a set,
-    // but honestly, if you're going to try this hard to mutate
-    // the set, then hopefully you've at least read the documentation
-    // and at least the code, so you know what you're doing.
-    friend ResultSet<T>::iterator internal::mbegin<T>(ResultSet<T>&);
-private:
-    iterator mbegin() { return data_.begin(); }
-    iterator mend()   { return data_.begin(); }
-
-public:
-    ResultSet() { }
-
-    int size() const { return data_.size(); }
-
-    const_iterator begin() const { return data_.begin(); }
-    const_iterator end()   const { return data_.end(); }
-};
-
-namespace internal {
-    template<typename T>
-    typename ResultSet<T>::iterator mbegin(ResultSet<T>& rs) {
-        return rs.data_.begin();
+    namespace internal {
+        class ResultSetMutator;
     }
-}
 
+    template<typename T>
+    class ResultSet {
+        std::vector<T> data_;
+        int            data_version_;
+
+    public:
+        typedef typename std::vector<T>::iterator       iterator;
+        typedef typename std::vector<T>::const_iterator const_iterator;
+
+        // This is really only intended a mutable mutator isn't used,
+        // unless very explicitly desired (like, you have to read the
+        // source code to get to it.
+        //
+        // Yes, I realize this can't stop you from mutating a set,
+        // but honestly, if you're going to try this hard to mutate
+        // the set, then hopefully you've at least read the documentation
+        // and at least the code, so you know what you're doing.
+        friend class internal::ResultSetMutator;
+    private:
+        iterator mbegin() { return data_.begin(); }
+        iterator mend()   { return data_.begin(); }
+
+    public:
+        ResultSet()
+        : data_version_(0)
+        {
+        }
+
+        bool empty() const { return data_.empty(); }
+        int size() const { return data_.size(); }
+
+        const_iterator begin() const { return data_.begin(); }
+        const_iterator end()   const { return data_.end(); }
+    };
 }
 #endif
 
