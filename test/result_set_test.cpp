@@ -1,10 +1,8 @@
-#include <iostream>
 #include <gtest/gtest.h>
 
 #include "skrillex/result_set.hpp"
 #include "mutator.hpp"
 
-using namespace std;
 using namespace skrillex;
 using namespace skrillex::internal;
 

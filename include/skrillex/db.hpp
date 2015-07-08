@@ -19,17 +19,30 @@
 #define skrillex_db_hpp
 
 #include <memory>
+
 #include "skrillex/options.hpp"
 #include "skrillex/result_set.hpp"
-#include "skrillex/status.hpp"
 
 namespace skrillex {
+    class Status;
 
-class Iterator;
+    class DB {
+    public:
+        Status getSongs(ResultSet<Song>& set);
+        Status getSongs(ResultSet<Song>& set, ReadOptions options);
 
-class DB {
+        Status getArtists(ResultSet<Artist>& set);
+        Status getArtists(ResultSet<Artist>& set, ReadOptions options);
 
-};
+        Status getGenres(ResultSet<Genre>& set);
+        Status getGenres(ResultSet<Genre>& set, ReadOptions options);
+
+        Status songPlayed(Song& song);
+        Status songPlayed(Song& song, WriteOptions options);
+
+        Status songFinished(Song& song);
+        Status songFinished(Song& song, WriteOptions options);
+    };
 
 }
 

@@ -10,6 +10,12 @@
 
 namespace skrillex {
 
+enum SortType {
+    None,
+    Counts,
+    Votes
+};
+
 struct Options {
     // Create the underlying database if missing.
     //
@@ -20,6 +26,11 @@ struct Options {
     //
     // Default: true
     bool enable_caching;
+
+    // Disables use of any database backend.
+    //
+    // Default: false
+    bool memory_only;
 
     // Sets the database session. This session will
     // be the ones used by default for ReadOptions
@@ -32,12 +43,6 @@ struct Options {
     int session_id;
 
     Options();
-};
-
-enum SortType {
-    None,
-    Counts,
-    Votes
 };
 
 struct ReadOptions {
