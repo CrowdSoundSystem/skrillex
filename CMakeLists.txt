@@ -8,6 +8,9 @@ set(CMAKE_INSTALL_PREFIX ${PROJECT_BINARY_DIR})
 set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
+# Allow C++11
+add_definitions(-std=c++11)
+
 include_directories(include)
 
 add_subdirectory(src)

@@ -19,6 +19,9 @@
 // convienient to capture results, but more importantly,
 // allows for the avoidance of queries altogether!
 //
+// ResultSet is **not** thread safe. When ResultSet is
+// passed into a DB object, it assumes exlusive access.
+//
 
 #ifndef skrillex_result_set_hpp
 #define skrillex_result_set_hpp
@@ -27,31 +30,48 @@
 #include "skrillex/dbo.hpp"
 
 namespace skrillex {
+    namespace internal {
+        template<typename T>
+        class ResultSet;
+
+        template<typename T>
+        typename ResultSet<T>::iterator mbegin(ResultSet<T>& rs) {
+            return rs.data_.begin();
+        }
+    }
     template<typename T>
     class ResultSet {
         std::vector<T> data_;
         int            data_version_;
 
     public:
-        ResultSet();
+        typedef typename std::vector<T>::iterator       iterator;
+        typedef typename std::vector<T>::const_iterator const_iterator;
 
-        class iterator {
-        public:
-            T&        operator*();
+        // This is really only intended a mutable mutator isn't used,
+        // unless very explicitly desired (like, you have to read the
+        // source code to get to it.
+        //
+        // Yes, I realize this can't stop you from mutating a set,
+        // but honestly, if you're going to try this hard to mutate
+        // the set, then hopefully you've at least read the documentation
+        // and at least the code, so you know what you're doing.
+        template<typename U> friend iterator internal::mbegin(ResultSet<U>&);
+    private:
+        iterator mbegin() { return data_.begin(); }
+        iterator mend()   { return data_.begin(); }
 
-            bool      operator==(const iterator& o) const;
-            bool      operator!=(const iterator& o) const;
+    public:
+        ResultSet() { }
 
-            iterator& operator=(const iterator& o);
-            iterator& operator++();
-        };
+        int size() const { return data_.size(); }
 
-        iterator begin() const;
-        iterator end() const;
-
-        int getDataVersion() const;
+        const_iterator begin() const { return data_.begin(); }
+        const_iterator end()   const { return data_.end(); }
     };
-}
 
+
+
+}
 #endif
 
