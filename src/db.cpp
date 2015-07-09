@@ -1,6 +1,7 @@
 #include <string>
 
 #include "skrillex/db.hpp"
+#include "store.hpp"
 
 using namespace std;
 
@@ -28,6 +29,10 @@ namespace skrillex {
         db = new DB(path, options);
         db->db_state_ = DB::State::Open;
 
+        // Create the underlying store
+        if (options.memory_only) {
+        }
+
         return Status::OK();
     }
 
@@ -42,23 +47,44 @@ namespace skrillex {
     Status DB::getArtists(ResultSet<Artist>& rs) { return getArtists(rs, ReadOptions()); }
     Status DB::getGenres(ResultSet<Genre>& rs)   { return getGenres(rs, ReadOptions()); }
 
-    Status DB::songPlayed(Song& song)   { return songPlayed(song, WriteOptions()); }
-    Status DB::songFinished(Song& song) { return songFinished(song, WriteOptions()); }
+    Status DB::setSongPlayed(Song& song)   { return setSongPlayed(song, WriteOptions()); }
+    Status DB::setSongFinished(Song& song) { return setSongFinished(song, WriteOptions()); }
 
     Status DB::getSongs(ResultSet<Song>& rs, ReadOptions options) {
-        return Status::OK();
+        if (!isOpen()) {
+            return Status::Error("Database closed.");
+        }
+
+        return store_->getSongs(rs, options);
     }
     Status DB::getArtists(ResultSet<Artist>& rs, ReadOptions options) {
-        return Status::OK();
+        if (!isOpen()) {
+            return Status::Error("Database closed.");
+        }
+
+        return store_->getArtists(rs, options);
     }
     Status DB::getGenres(ResultSet<Genre>& rs, ReadOptions options) {
-        return Status::OK();
+        if (!isOpen()) {
+            return Status::Error("Database closed.");
+        }
+
+        return store_->getGenres(rs, options);
     }
 
     Status DB::songPlayed(Song& song, WriteOptions options) {
-        return Status::OK();
+        if (!isOpen()) {
+            return Status::Error("Database closed.");
+        }
+
+        return store_->setSongPlayed(song, options);
     }
 
     Status DB::songFinished(Song& song, WriteOptions options) {
+        if (!isOpen()) {
+            return Status::Error("Database closed.");
+        }
+
+        return store_->setSongFinished(song, options);
     }
 }

@@ -27,9 +27,11 @@
 #include "skrillex/status.hpp"
 
 namespace skrillex {
-    class DB;
-    class DBCache;
+    namespace internal {
+        class Store;
+    }
 
+    class DB;
     Status open(DB*& db, std::string path, Options options);
 
     class DB {
@@ -48,11 +50,14 @@ namespace skrillex {
         Status getGenres(ResultSet<Genre>& set);
         Status getGenres(ResultSet<Genre>& set, ReadOptions options);
 
-        Status songPlayed(Song& song);
-        Status songPlayed(Song& song, WriteOptions options);
+        Status getPlayHistory(ResultSet<Song>& set);
+        Status getPlayHistory(ResultSet<Song>& set, ReadOptions options);
 
-        Status songFinished(Song& song);
-        Status songFinished(Song& song, WriteOptions options);
+        Status setSongPlayed(Song& song);
+        Status setSongPlayed(Song& song, WriteOptions options);
+
+        Status setSongFinished(Song& song);
+        Status setSongFinished(Song& song, WriteOptions options);
 
     private:
         DB(std::string path, Options options);
@@ -70,6 +75,8 @@ namespace skrillex {
         Options     db_options_;
         State       db_state_;
         int         session_id_;
+
+        std::unique_ptr<internal::Store> store_;
     };
 }
 
