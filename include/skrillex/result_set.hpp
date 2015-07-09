@@ -36,11 +36,6 @@ namespace skrillex {
 
     template<typename T>
     class ResultSet {
-        std::vector<T> data_;
-        int            data_version_;
-
-        friend class internal::ResultSetMutator;
-
     public:
         ResultSet()
         : data_version_(0)
@@ -50,10 +45,16 @@ namespace skrillex {
         typedef typename std::vector<T>::const_iterator const_iterator;
 
         bool empty() const { return data_.empty(); }
-        int size() const { return data_.size(); }
+        int  size()  const { return data_.size(); }
 
         const_iterator begin() const { return data_.begin(); }
         const_iterator end()   const { return data_.end(); }
+
+    private:
+        std::vector<T> data_;
+        int            data_version_;
+
+        friend class internal::ResultSetMutator;
     };
 }
 #endif

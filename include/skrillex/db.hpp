@@ -19,14 +19,26 @@
 #define skrillex_db_hpp
 
 #include <memory>
+#include <queue>
+#include <string>
 
 #include "skrillex/options.hpp"
 #include "skrillex/result_set.hpp"
 #include "skrillex/status.hpp"
 
 namespace skrillex {
+    class DB;
+    class DBCache;
+
+    Status open(DB*& db, std::string path, Options options);
+
     class DB {
     public:
+        ~DB();
+
+        bool isOpen() const;
+        void close();
+
         Status getSongs(ResultSet<Song>& set);
         Status getSongs(ResultSet<Song>& set, ReadOptions options);
 
@@ -41,8 +53,24 @@ namespace skrillex {
 
         Status songFinished(Song& song);
         Status songFinished(Song& song, WriteOptions options);
-    };
 
+    private:
+        DB(std::string path, Options options);
+        DB(const DB& other)  = delete;
+        DB(const DB&& other) = delete;
+
+        friend Status open(DB*& db, std::string path, Options options);
+    private:
+        enum class State {
+            Closed,
+            Open
+        };
+
+        std::string db_path_;
+        Options     db_options_;
+        State       db_state_;
+        int         session_id_;
+    };
 }
 
 #endif

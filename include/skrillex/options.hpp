@@ -43,6 +43,8 @@ struct Options {
     int session_id;
 
     Options();
+
+    static Options InMemoryOptions();
 };
 
 struct ReadOptions {

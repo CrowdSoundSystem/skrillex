@@ -14,21 +14,12 @@
 
 namespace skrillex {
     class Status {
+    private:
         enum class Code {
             OK = 0,
             NotFound = 1,
             Error = 2
         };
-
-        Code        code_;
-        std::string message_;
-
-    private:
-        Status(Code code, std::string message)
-        : code_(code)
-        , message_(std::move(message))
-        {
-        }
 
     public:
         Status()
@@ -63,6 +54,18 @@ namespace skrillex {
                 default:             return message_;
             }
         }
+
+    private:
+        Status(Code code, std::string message)
+        : code_(code)
+        , message_(std::move(message))
+        {
+        }
+
+    private:
+        Code        code_;
+        std::string message_;
+
     };
 }
 

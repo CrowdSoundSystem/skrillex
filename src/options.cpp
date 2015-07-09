@@ -20,5 +20,11 @@ namespace skrillex {
     : session_id(0)
     {
     }
+
+    Options Options::InMemoryOptions() {
+        Options options;
+        options.memory_only = true;
+        return options;
+    }
 }
 
