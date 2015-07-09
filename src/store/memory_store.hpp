@@ -12,12 +12,13 @@ namespace skrillex {
 namespace internal {
     class MemoryStore : public Store {
     public:
+        MemoryStore();
         MemoryStore(const MemoryStore& other) = delete;
         MemoryStore(MemoryStore&& other)      = delete;
 
         Status getSongs(ResultSet<Song>& set, ReadOptions options);
-        Status getArtists(ResultSet<Song>& set, ReadOptions options);
-        Status getGenres(ResultSet<Song>& set, ReadOptions options);
+        Status getArtists(ResultSet<Artist>& set, ReadOptions options);
+        Status getGenres(ResultSet<Genre>& set, ReadOptions options);
 
         Status getPlayHistory(ResultSet<Song>& set, ReadOptions options);
 
@@ -28,6 +29,8 @@ namespace internal {
         std::vector<Song>   songs_;
         std::vector<Artist> artists_;
         std::vector<Genre>  genres_;
+
+        int current_song_id_;
     };
 }
 }

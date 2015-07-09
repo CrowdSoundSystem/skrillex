@@ -12,8 +12,8 @@ namespace internal {
         virtual ~Store() = 0;
 
         virtual Status getSongs(ResultSet<Song>& set, ReadOptions options) = 0;
-        virtual Status getArtists(ResultSet<Song>& set, ReadOptions options) = 0;
-        virtual Status getGenres(ResultSet<Song>& set, ReadOptions options) = 0;
+        virtual Status getArtists(ResultSet<Artist>& set, ReadOptions options) = 0;
+        virtual Status getGenres(ResultSet<Genre>& set, ReadOptions options) = 0;
 
         virtual Status getPlayHistory(ResultSet<Song>& set, ReadOptions options) = 0;
 

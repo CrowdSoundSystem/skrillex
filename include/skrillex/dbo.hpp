@@ -9,12 +9,12 @@
 
 #include <string>
 
-class Countable {
+struct Countable {
     int count;
     int votes;
 };
 
-class Artist : public Countable {
+struct Artist : public Countable {
     int         id;
     std::string name;
 
@@ -22,7 +22,7 @@ class Artist : public Countable {
     uint32_t    last_played;
 };
 
-class Genre : public Countable {
+struct Genre : public Countable {
     int         id;
     std::string name;
 
@@ -30,7 +30,7 @@ class Genre : public Countable {
     uint32_t    last_played;
 };
 
-class Song : public Countable {
+struct Song : public Countable {
     int         id;
     Artist      artist;
     Genre       genre;
