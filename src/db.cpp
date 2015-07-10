@@ -2,8 +2,10 @@
 
 #include "skrillex/db.hpp"
 #include "store/store.hpp"
+#include "store/memory_store.hpp"
 
 using namespace std;
+using namespace skrillex::internal;
 
 namespace skrillex {
     DB::DB(string path, Options options)
@@ -31,6 +33,7 @@ namespace skrillex {
 
         // Create the underlying store
         if (options.memory_only) {
+            db->store_.reset(new MemoryStore());
         }
 
         return Status::OK();

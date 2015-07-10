@@ -26,6 +26,11 @@ namespace internal {
         return chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
     }
 
+    MemoryStore::MemoryStore() {
+    }
+    MemoryStore::~MemoryStore() {
+    }
+
     Status MemoryStore::getSongs(ResultSet<Song>& set, ReadOptions options) {
         // For now, just overwrite the result set
         // data. In the future, we can do more intelligent things.

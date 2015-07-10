@@ -13,8 +13,10 @@ namespace skrillex {
 namespace internal {
     class MemoryStore : public Store {
     public:
+        MemoryStore();
         MemoryStore(const MemoryStore& other) = delete;
         MemoryStore(MemoryStore&& other)      = delete;
+        ~MemoryStore();
 
         Status getSongs(ResultSet<Song>& set, ReadOptions options);
         Status getArtists(ResultSet<Artist>& set, ReadOptions options);

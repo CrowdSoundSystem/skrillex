@@ -27,6 +27,11 @@ namespace skrillex {
         {
         }
 
+        // We make it a friend operator so comparing the static
+        // functions (i.e. Status::OK()) to a status doesn't cause
+        // problems (looking at you, gtest)
+        friend bool operator==(const Status& a, const Status& b);
+
         static Status OK() {
             return Status();
         }

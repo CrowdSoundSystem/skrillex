@@ -8,8 +8,10 @@
 namespace skrillex {
 namespace internal {
     class Store {
+    protected:
+        Store() = default;
     public:
-        virtual ~Store() = 0;
+        virtual ~Store() { }
 
         virtual Status getSongs(ResultSet<Song>& set, ReadOptions options) = 0;
         virtual Status getArtists(ResultSet<Artist>& set, ReadOptions options) = 0;
