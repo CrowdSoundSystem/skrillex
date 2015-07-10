@@ -8,8 +8,6 @@
 namespace skrillex {
 namespace internal {
     class Store {
-    protected:
-        Store() = default;
     public:
         virtual ~Store() { }
 
@@ -19,12 +17,12 @@ namespace internal {
 
         virtual Status getPlayHistory(ResultSet<Song>& set, ReadOptions options) = 0;
 
-        virtual Status queueSong(int song_id);
-        virtual Status songFinished();
+        virtual Status queueSong(int song_id) = 0;
+        virtual Status songFinished() = 0;
 
-        virtual Status addSong(Song& song);
-        virtual Status addArtist(Artist& artist);
-        virtual Status addGenre(Genre& genre);
+        virtual Status addSong(Song& song) = 0;
+        virtual Status addArtist(Artist& artist) = 0;
+        virtual Status addGenre(Genre& genre) = 0;
     };
 }
 }
