@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <chrono>
 #include <vector>
 
 #include "skrillex/dbo.hpp"
@@ -12,9 +14,8 @@ namespace internal {
         return a.last_played > b.last_played;
     }
 
-    MemoryStore::MemoryStore()
-    : current_song_id_(0)
-    {
+    uint64_t timestamp() {
+        return chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
     }
 
     Status MemoryStore::getSongs(ResultSet<Song>& set, ReadOptions options) {
@@ -30,7 +31,7 @@ namespace internal {
             it = songs_.begin() + options.result_limit;
         }
 
-        copy(songs_.begin(), it, front_inserter(set_data));
+        copy(songs_.begin(), songs_.end(), back_inserter(set_data));
 
         return Status::OK();
     }
@@ -48,7 +49,7 @@ namespace internal {
             it = artists_.begin() + options.result_limit;
         }
 
-        copy(artists_.begin(), it, front_inserter(set_data));
+        copy(artists_.begin(), it, back_inserter(set_data));
 
         return Status::OK();
     }
@@ -59,14 +60,14 @@ namespace internal {
         vector<Genre>& set_data = ResultSetMutator::getVector<Genre>(set);
         set_data.clear();
 
-        vector<Artist>::iterator it;
-        if (!options.result_limit || (size_t)options.result_limit > artists_.size()) {
-            it = artists_.end();
+        vector<Genre>::iterator it;
+        if (!options.result_limit || (size_t)options.result_limit > genres_.size()) {
+            it = genres_.end();
         } else {
-            it = artists_.begin() + options.result_limit;
+            it = genres_.begin() + options.result_limit;
         }
 
-        copy(artists_.begin(), it, front_inserter(set_data));
+        copy(genres_.begin(), it, back_inserter(set_data));
 
         return Status::OK();
     }
@@ -79,7 +80,7 @@ namespace internal {
 
         // Copy the entire list, so we can get a proper sorting.
         // After that, we'll trim the list based on any limits.
-        copy(songs_.begin(), songs_.end(), front_inserter(set_data));
+        copy(songs_.begin(), songs_.end(), back_inserter(set_data));
 
         // Now, let's sort based on play date.
         sort(set_data.begin(), set_data.end(), playSort);
@@ -93,21 +94,38 @@ namespace internal {
         return Status::OK();
     }
 
-    Status MemoryStore::setSongPlayed(Song& song, WriteOptions options) {
+    Status MemoryStore::queueSong(int song_id) {
+        // Make sure the song id actually exists!
+        auto song = find_if(songs_.begin(), songs_.end(), [song_id](const Song& s) {
+            return s.id == song_id;
+        });
+
+        if (song == songs_.end()) {
+            return Status::NotFound("Could not queue song");
+        }
+
+        song_queue_.push(*song);
+
+        return Status::OK();
     }
 
-    Status MemoryStore::setSongFinished(Song& song, WriteOptions options) {
-        // Update song database locally, using a sexy sexy lambda.
-        auto it = find(songs_.begin(), songs_.end(), [&song](const Song& s) {
-                return s.id == song.id;
+    Status MemoryStore::songFinished() {
+        if (song_queue_.empty()) {
+            return Status::Error("Queue Empty");
+        }
+
+        Song song = song_queue_.front();
+        song_queue_.pop();
+
+        auto it = find_if(songs_.begin(), songs_.end(), [&song](const Song& s) {
+            return s.id == song.id;
         });
 
         if (it == songs_.end()) {
-            return Status::NotFound("Could not find song to update");
+            return Status::Error("Invalid State: Song existed in queue, but not database");
         }
 
-        it->last_played  = song.last_played;
-        current_song_id_ = 0;
+        it->last_played = timestamp();
 
         return Status::OK();
     }

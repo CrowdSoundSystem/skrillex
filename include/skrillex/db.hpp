@@ -53,11 +53,8 @@ namespace skrillex {
         Status getPlayHistory(ResultSet<Song>& set);
         Status getPlayHistory(ResultSet<Song>& set, ReadOptions options);
 
-        Status setSongPlayed(Song& song);
-        Status setSongPlayed(Song& song, WriteOptions options);
-
-        Status setSongFinished(Song& song);
-        Status setSongFinished(Song& song, WriteOptions options);
+        Status queueSong(int song_id);
+        Status songFinished();
 
     private:
         DB(std::string path, Options options);

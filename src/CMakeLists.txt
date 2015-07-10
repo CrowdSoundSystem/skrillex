@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(skrillex)
 
+include_directories(.)
+
 file(GLOB_RECURSE skrillex_srcs
     "*.cpp"
 )

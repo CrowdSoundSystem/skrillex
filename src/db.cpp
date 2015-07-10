@@ -1,7 +1,7 @@
 #include <string>
 
 #include "skrillex/db.hpp"
-#include "store.hpp"
+#include "store/store.hpp"
 
 using namespace std;
 
@@ -47,9 +47,6 @@ namespace skrillex {
     Status DB::getArtists(ResultSet<Artist>& rs) { return getArtists(rs, ReadOptions()); }
     Status DB::getGenres(ResultSet<Genre>& rs)   { return getGenres(rs, ReadOptions()); }
 
-    Status DB::setSongPlayed(Song& song)   { return setSongPlayed(song, WriteOptions()); }
-    Status DB::setSongFinished(Song& song) { return setSongFinished(song, WriteOptions()); }
-
     Status DB::getSongs(ResultSet<Song>& rs, ReadOptions options) {
         if (!isOpen()) {
             return Status::Error("Database closed.");
@@ -72,19 +69,19 @@ namespace skrillex {
         return store_->getGenres(rs, options);
     }
 
-    Status DB::songPlayed(Song& song, WriteOptions options) {
+    Status DB::queueSong(int song_id) {
         if (!isOpen()) {
             return Status::Error("Database closed.");
         }
 
-        return store_->setSongPlayed(song, options);
+        return store_->queueSong(song_id);
     }
 
-    Status DB::songFinished(Song& song, WriteOptions options) {
+    Status DB::songFinished() {
         if (!isOpen()) {
             return Status::Error("Database closed.");
         }
 
-        return store_->setSongFinished(song, options);
+        return store_->songFinished();
     }
 }

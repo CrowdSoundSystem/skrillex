@@ -19,7 +19,7 @@ struct Artist : public Countable {
     std::string name;
 
     // Unix timestamp
-    uint32_t    last_played;
+    uint64_t    last_played;
 };
 
 struct Genre : public Countable {
@@ -27,7 +27,7 @@ struct Genre : public Countable {
     std::string name;
 
     // Unix timestamp
-    uint32_t    last_played;
+    uint64_t    last_played;
 };
 
 struct Song : public Countable {
@@ -37,7 +37,7 @@ struct Song : public Countable {
     std::string name;
 
     // Unix timestamp
-    uint32_t    last_played;
+    uint64_t    last_played;
 };
 
 #endif

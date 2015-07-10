@@ -17,8 +17,9 @@ namespace internal {
 
         virtual Status getPlayHistory(ResultSet<Song>& set, ReadOptions options) = 0;
 
-        virtual Status setSongPlayed(Song& song, WriteOptions options) = 0;
-        virtual Status setSongFinished(Song& song, WriteOptions options) = 0;
+        virtual Status queueSong(int song_id);
+        virtual Status songFinished();
+
     };
 }
 }

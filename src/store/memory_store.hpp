@@ -1,6 +1,7 @@
 #ifndef skrillex_memory_store_hpp
 #define skrillex_memory_store_hpp
 
+#include <queue>
 #include <vector>
 
 #include "skrillex/options.hpp"
@@ -12,7 +13,6 @@ namespace skrillex {
 namespace internal {
     class MemoryStore : public Store {
     public:
-        MemoryStore();
         MemoryStore(const MemoryStore& other) = delete;
         MemoryStore(MemoryStore&& other)      = delete;
 
@@ -22,15 +22,15 @@ namespace internal {
 
         Status getPlayHistory(ResultSet<Song>& set, ReadOptions options);
 
-        Status setSongPlayed(Song& song, WriteOptions options);
-        Status setSongFinished(Song& song, WriteOptions options);
+        Status queueSong(int songId);
+        Status songFinished();
 
     private:
         std::vector<Song>   songs_;
         std::vector<Artist> artists_;
         std::vector<Genre>  genres_;
 
-        int current_song_id_;
+        std::queue<Song>    song_queue_;
     };
 }
 }
