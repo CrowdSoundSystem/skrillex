@@ -26,7 +26,11 @@ namespace internal {
         return chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
     }
 
-    MemoryStore::MemoryStore() {
+    MemoryStore::MemoryStore()
+    : song_id_counter_(0)
+    , artist_id_counter_(0)
+    , genre_id_counter_(0)
+    {
     }
     MemoryStore::~MemoryStore() {
     }
@@ -158,7 +162,7 @@ namespace internal {
     }
 
     Status MemoryStore::addGenre(Genre& genre) {
-        genre.id = ++song_id_counter_;
+        genre.id = ++genre_id_counter_;
         genres_.push_back(genre);
 
         return Status::OK();

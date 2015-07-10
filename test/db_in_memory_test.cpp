@@ -51,15 +51,14 @@ TEST(InMemoryDatabaseTests, Insert) {
         g.votes = i;
         g.count = 10 - i;
 
+
         Artist a;
         a.id = i;
         a.name = "a" + to_string(i);
         a.votes = 10 - i;
-        g.count = i;
+        a.count = i;
 
-        cout << "Adding genre" << endl;
         EXPECT_EQ(Status::OK(), db->addGenre(g));
-        cout << "Adding genre complete" << endl;
 
         EXPECT_EQ(i + 1, g.id);
         EXPECT_EQ("g" + to_string(i), g.name);
@@ -76,7 +75,7 @@ TEST(InMemoryDatabaseTests, Insert) {
         artists.push_back(a);
     }
 
-    for (int i = 1; i <= 100; i++) {
+    for (int i = 0; i < 100; i++) {
         Song s;
         s.id     = i;
         s.genre  = genres[i % 10];
@@ -85,8 +84,8 @@ TEST(InMemoryDatabaseTests, Insert) {
 
         EXPECT_EQ(Status::OK(), db->addSong(s));
         EXPECT_EQ(i + 1, s.id);
-        EXPECT_EQ(i % 10, s.genre.id);
-        EXPECT_EQ(i % 10, s.artist.id);
+        EXPECT_EQ(i % 10 + 1, s.genre.id);
+        EXPECT_EQ(i % 10 + 1, s.artist.id);
 
         songs.push_back(s);
     }
