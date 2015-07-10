@@ -33,7 +33,7 @@ TEST(InMemoryDatabaseTests, Init) {
     ASSERT_FALSE(raw->isOpen());
 }
 
-TEST(InMemoryDatabaseTests, Insert) {
+TEST(InMemoryDatabaseTests, InsertAndGet) {
     DB* raw = 0;
     Status s = open(raw, "", Options::InMemoryOptions());
     ASSERT_EQ(Status::OK(), s);

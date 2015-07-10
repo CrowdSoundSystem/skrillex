@@ -32,6 +32,7 @@ namespace internal {
     , genre_id_counter_(0)
     {
     }
+
     MemoryStore::~MemoryStore() {
     }
 
@@ -41,17 +42,28 @@ namespace internal {
         vector<Song>& set_data = ResultSetMutator::getVector<Song>(set);
         set_data.clear();
 
-        vector<Song>::iterator it;
-        if (!options.result_limit || (size_t)options.result_limit > songs_.size()) {
-            it = songs_.end();
-        } else {
-            it = songs_.begin() + options.result_limit;
-        }
-
+        // Copy the entire list, so we can get a proper sorting.
+        // After that, we'll trim the list based on any limits.
         copy(songs_.begin(), songs_.end(), back_inserter(set_data));
 
+        switch (options.sort) {
+            case SortType::Counts:
+                sort(set_data.begin(), set_data.end(), countSort);
+                break;
+            case SortType::Votes:
+                sort(set_data.begin(), set_data.end(), voteSort);
+                break;
+            default:
+                break;
+        }
+
+        size_t erase_size = set_data.size() - (size_t)options.result_limit;
+        if (erase_size > 0) {
+            set_data.erase(set_data.end() - erase_size, set_data.end());
+        }
+
         return Status::OK();
-    }
+}
 
     Status MemoryStore::getArtists(ResultSet<Artist>& set, ReadOptions options) {
         // For now, just overwrite the result set
@@ -59,14 +71,25 @@ namespace internal {
         vector<Artist>& set_data = ResultSetMutator::getVector<Artist>(set);
         set_data.clear();
 
-        vector<Artist>::iterator it;
-        if (!options.result_limit || (size_t)options.result_limit > artists_.size()) {
-            it = artists_.end();
-        } else {
-            it = artists_.begin() + options.result_limit;
+        // Copy the entire list, so we can get a proper sorting.
+        // After that, we'll trim the list based on any limits.
+        copy(artists_.begin(), artists_.end(), back_inserter(set_data));
+
+        switch (options.sort) {
+            case SortType::Counts:
+                sort(set_data.begin(), set_data.end(), countSort);
+                break;
+            case SortType::Votes:
+                sort(set_data.begin(), set_data.end(), voteSort);
+                break;
+            default:
+                break;
         }
 
-        copy(artists_.begin(), it, back_inserter(set_data));
+        size_t erase_size = set_data.size() - (size_t)options.result_limit;
+        if (erase_size > 0) {
+            set_data.erase(set_data.end() - erase_size, set_data.end());
+        }
 
         return Status::OK();
     }
@@ -77,14 +100,25 @@ namespace internal {
         vector<Genre>& set_data = ResultSetMutator::getVector<Genre>(set);
         set_data.clear();
 
-        vector<Genre>::iterator it;
-        if (!options.result_limit || (size_t)options.result_limit > genres_.size()) {
-            it = genres_.end();
-        } else {
-            it = genres_.begin() + options.result_limit;
+        // Copy the entire list, so we can get a proper sorting.
+        // After that, we'll trim the list based on any limits.
+        copy(genres_.begin(), genres_.end(), back_inserter(set_data));
+
+        switch (options.sort) {
+            case SortType::Counts:
+                sort(set_data.begin(), set_data.end(), countSort);
+                break;
+            case SortType::Votes:
+                sort(set_data.begin(), set_data.end(), voteSort);
+                break;
+            default:
+                break;
         }
 
-        copy(genres_.begin(), it, back_inserter(set_data));
+        size_t erase_size = set_data.size() - (size_t)options.result_limit;
+        if (erase_size > 0) {
+            set_data.erase(set_data.end() - erase_size, set_data.end());
+        }
 
         return Status::OK();
     }
