@@ -53,12 +53,16 @@ namespace skrillex {
         Status getPlayHistory(ResultSet<Song>& set);
         Status getPlayHistory(ResultSet<Song>& set, ReadOptions options);
 
+        Status getQueue(ResultSet<Song>& set);
         Status queueSong(int song_id);
         Status songFinished();
 
         Status addSong(Song& s);
         Status addArtist(Artist& artist);
         Status addGenre(Genre& genre);
+
+        Status vote(Song& s, int amount);
+
     private:
         DB(std::string path, Options options);
         DB(const DB& other)  = delete;

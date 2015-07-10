@@ -72,6 +72,13 @@ namespace skrillex {
         return store_->getGenres(rs, options);
     }
 
+    Status DB::getQueue(ResultSet<Song>& set) {
+        if (!isOpen()) {
+            return Status::Error("Database closed.");
+        }
+
+        return store_->getQueue(set);
+    }
     Status DB::queueSong(int song_id) {
         if (!isOpen()) {
             return Status::Error("Database closed.");
@@ -100,4 +107,11 @@ namespace skrillex {
         return store_->addGenre(genre);
     }
 
+    Status DB::vote(Song& song, int amount) {
+        if (!isOpen()) {
+            return Status::Error("Database closed.");
+        }
+
+        return store_->vote(song, amount);
+    }
 }

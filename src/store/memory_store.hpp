@@ -14,6 +14,7 @@ namespace internal {
     class MemoryStore : public Store {
     public:
         MemoryStore();
+        MemoryStore(int session_id);
         MemoryStore(const MemoryStore& other) = delete;
         MemoryStore(MemoryStore&& other)      = delete;
         ~MemoryStore();
@@ -24,12 +25,15 @@ namespace internal {
 
         Status getPlayHistory(ResultSet<Song>& set, ReadOptions options);
 
+        Status getQueue(ResultSet<Song>& set);
         Status queueSong(int songId);
         Status songFinished();
 
         Status addSong(Song& song);
         Status addArtist(Artist& artist);
         Status addGenre(Genre& genre);
+
+        Status vote(Song& s, int amount);
 
     private:
         std::vector<Song>   songs_;
@@ -41,6 +45,8 @@ namespace internal {
         int song_id_counter_;
         int artist_id_counter_;
         int genre_id_counter_;
+
+        int session_id_;
     };
 }
 }

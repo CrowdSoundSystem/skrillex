@@ -17,12 +17,15 @@ namespace internal {
 
         virtual Status getPlayHistory(ResultSet<Song>& set, ReadOptions options) = 0;
 
+        virtual Status getQueue(ResultSet<Song>& set) = 0;
         virtual Status queueSong(int song_id) = 0;
         virtual Status songFinished() = 0;
 
         virtual Status addSong(Song& song) = 0;
         virtual Status addArtist(Artist& artist) = 0;
         virtual Status addGenre(Genre& genre) = 0;
+
+        virtual Status vote(Song& s, int amount) = 0;
     };
 }
 }

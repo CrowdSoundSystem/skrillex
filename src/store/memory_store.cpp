@@ -26,10 +26,17 @@ namespace internal {
         return chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
     }
 
+
     MemoryStore::MemoryStore()
+    : MemoryStore(0)
+    {
+    }
+
+    MemoryStore::MemoryStore(int session_id)
     : song_id_counter_(0)
     , artist_id_counter_(0)
     , genre_id_counter_(0)
+    , session_id_(session_id)
     {
     }
 
@@ -42,9 +49,16 @@ namespace internal {
         vector<Song>& set_data = ResultSetMutator::getVector<Song>(set);
         set_data.clear();
 
+        // If no explicit option was set, just use the current one.
+        if (!options.session_id) {
+            options.session_id = session_id_;
+        }
+
         // Copy the entire list, so we can get a proper sorting.
         // After that, we'll trim the list based on any limits.
-        copy(songs_.begin(), songs_.end(), back_inserter(set_data));
+        copy_if(songs_.begin(), songs_.end(), back_inserter(set_data), [&options] (const Song& item) {
+            return item.session_id == options.session_id;
+        });
 
         switch (options.sort) {
             case SortType::Counts:
@@ -71,9 +85,16 @@ namespace internal {
         vector<Artist>& set_data = ResultSetMutator::getVector<Artist>(set);
         set_data.clear();
 
+        // If no explicit option was set, just use the current one.
+        if (!options.session_id) {
+            options.session_id = session_id_;
+        }
+
         // Copy the entire list, so we can get a proper sorting.
         // After that, we'll trim the list based on any limits.
-        copy(artists_.begin(), artists_.end(), back_inserter(set_data));
+        copy_if(artists_.begin(), artists_.end(), back_inserter(set_data), [&options] (const Artist& item) {
+            return item.session_id == options.session_id;
+        });
 
         switch (options.sort) {
             case SortType::Counts:
@@ -100,9 +121,16 @@ namespace internal {
         vector<Genre>& set_data = ResultSetMutator::getVector<Genre>(set);
         set_data.clear();
 
+        // If no explicit option was set, just use the current one.
+        if (!options.session_id) {
+            options.session_id = session_id_;
+        }
+
         // Copy the entire list, so we can get a proper sorting.
         // After that, we'll trim the list based on any limits.
-        copy(genres_.begin(), genres_.end(), back_inserter(set_data));
+        copy_if(genres_.begin(), genres_.end(), back_inserter(set_data), [&options] (const Genre& item) {
+            return item.session_id == options.session_id;
+        });
 
         switch (options.sort) {
             case SortType::Counts:
@@ -141,6 +169,17 @@ namespace internal {
         if (erase_size > 0) {
             set_data.erase(set_data.end() - erase_size, set_data.end());
         }
+
+        return Status::OK();
+    }
+
+    Status MemoryStore::getQueue(ResultSet<Song>& set) {
+        // For now, just overwrite the result set
+        // data. In the future, we can do more intelligent things.
+        vector<Song>& set_data = ResultSetMutator::getVector<Song>(set);
+        set_data.clear();
+
+        copy(songs_.begin(), songs_.end(), back_inserter(set_data));
 
         return Status::OK();
     }
@@ -199,6 +238,10 @@ namespace internal {
         genre.id = ++genre_id_counter_;
         genres_.push_back(genre);
 
+        return Status::OK();
+    }
+
+    Status MemoryStore::vote(Song& s, int amount) {
         return Status::OK();
     }
 }
