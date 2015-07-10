@@ -9,6 +9,8 @@
 
 #include <string>
 
+namespace skrillex {
+
 struct SessionData {
     int session_id;
 };
@@ -24,6 +26,8 @@ struct Artist : public SessionData, Countable {
 
     // Unix timestamp
     uint64_t    last_played;
+
+    friend bool operator==(const Artist& a, const Artist& b);
 };
 
 struct Genre : public SessionData, Countable {
@@ -32,6 +36,7 @@ struct Genre : public SessionData, Countable {
 
     // Unix timestamp
     uint64_t    last_played;
+    friend bool operator==(const Genre& a, const Genre& b);
 };
 
 struct Song : public SessionData, Countable {
@@ -42,6 +47,11 @@ struct Song : public SessionData, Countable {
 
     // Unix timestamp
     uint64_t    last_played;
+
+    friend bool operator==(const Song& a, const Song& b);
+
 };
+
+}
 
 #endif

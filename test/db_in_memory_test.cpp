@@ -89,4 +89,18 @@ TEST(InMemoryDatabaseTests, InsertAndGet) {
 
         songs.push_back(s);
     }
+
+    ResultSet<Song> rs_songs;
+    EXPECT_EQ(Status::OK(), db->getSongs(rs_songs));
+    EXPECT_EQ(100, rs_songs.size());
+
+    int last_count = 0;
+    int last_votes = 0;
+    for (auto& s : rs_songs) {
+        cout << "Comparing songs" << endl;
+        EXPECT_GT(s.count, last_count);
+        EXPECT_LT(s.votes, last_votes);
+        EXPECT_EQ(songs[s.id - 1], s);
+    }
+
 }
