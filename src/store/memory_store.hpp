@@ -25,12 +25,20 @@ namespace internal {
         Status queueSong(int songId);
         Status songFinished();
 
+        Status addSong(Song& song);
+        Status addArtist(Artist& artist);
+        Status addGenre(Genre& genre);
+
     private:
         std::vector<Song>   songs_;
         std::vector<Artist> artists_;
         std::vector<Genre>  genres_;
 
         std::queue<Song>    song_queue_;
+
+        int song_id_counter_;
+        int artist_id_counter_;
+        int genre_id_counter_;
     };
 }
 }

@@ -56,6 +56,9 @@ namespace skrillex {
         Status queueSong(int song_id);
         Status songFinished();
 
+        Status addSong(Song& s);
+        Status addArtist(Artist& artist);
+        Status addGenre(Genre& genre);
     private:
         DB(std::string path, Options options);
         DB(const DB& other)  = delete;

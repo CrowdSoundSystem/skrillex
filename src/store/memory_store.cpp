@@ -14,6 +14,14 @@ namespace internal {
         return a.last_played > b.last_played;
     }
 
+    bool countSort(const Countable& a, const Countable& b) {
+        return a.count > b.count;
+    }
+
+    bool voteSort(const Countable& a, const Countable& b) {
+        return a.votes > b.votes;
+    }
+
     uint64_t timestamp() {
         return chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
     }
@@ -126,6 +134,27 @@ namespace internal {
         }
 
         it->last_played = timestamp();
+
+        return Status::OK();
+    }
+
+    Status MemoryStore::addSong(Song& song) {
+        song.id = ++song_id_counter_;
+        songs_.push_back(song);
+
+        return Status::OK();
+    }
+
+    Status MemoryStore::addArtist(Artist& artist) {
+        artist.id = ++artist_id_counter_;
+        artists_.push_back(artist);
+
+        return Status::OK();
+    }
+
+    Status MemoryStore::addGenre(Genre& genre) {
+        genre.id = ++song_id_counter_;
+        genres_.push_back(genre);
 
         return Status::OK();
     }

@@ -20,6 +20,9 @@ namespace internal {
         virtual Status queueSong(int song_id);
         virtual Status songFinished();
 
+        virtual Status addSong(Song& song);
+        virtual Status addArtist(Artist& artist);
+        virtual Status addGenre(Genre& genre);
     };
 }
 }

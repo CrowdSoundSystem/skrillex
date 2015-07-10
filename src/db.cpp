@@ -84,4 +84,17 @@ namespace skrillex {
 
         return store_->songFinished();
     }
+
+    Status DB::addSong(Song& song) {
+        return store_->addSong(song);
+    }
+
+    Status DB::addArtist(Artist& artist) {
+        return store_->addArtist(artist);
+    }
+
+    Status DB::addGenre(Genre& genre) {
+        return store_->addGenre(genre);
+    }
+
 }
