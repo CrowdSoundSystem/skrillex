@@ -16,9 +16,10 @@ namespace skrillex {
     class Status {
     private:
         enum class Code {
-            OK = 0,
-            NotFound = 1,
-            Error = 2
+            OK             = 0,
+            NotFound       = 1,
+            NotImplemented = 2,
+            Error          = 3
         };
 
     public:
@@ -39,13 +40,19 @@ namespace skrillex {
         static Status NotFound(std::string message) {
             return Status(Code::NotFound, message);
         }
+
+        static Status NotImplemented(std::string message) {
+            return Status(Code::NotImplemented, message);
+        }
+
         static Status Error(std::string message) {
             return Status(Code::Error, message);
         }
 
-        bool ok() const       { return code_ == Code::OK; }
-        bool notFound() const { return code_ == Code::NotFound; }
-        bool error() const    { return code_ == Code::Error; }
+        bool ok() const             { return code_ == Code::OK; }
+        bool notFound() const       { return code_ == Code::NotFound; }
+        bool NotImplemented() const { return code_ == Code::NotImplemented; }
+        bool error() const          { return code_ == Code::Error; }
 
         std::string message() const {
             return message_;
@@ -53,10 +60,11 @@ namespace skrillex {
 
         std::string string() const {
             switch (code_) {
-                case Code::OK:       return "Status: OK";
-                case Code::NotFound: return "Status: NotFound - " + message_;
-                case Code::Error:    return "Status: Error - " + message_;
-                default:             return message_;
+                case Code::OK:             return "Status: OK";
+                case Code::NotFound:       return "Status: NotFound - " + message_;
+                case Code::NotImplemented: return "Status: NotImplemented - " + message_;
+                case Code::Error:          return "Status: Error - " + message_;
+                default:                   return message_;
             }
         }
 

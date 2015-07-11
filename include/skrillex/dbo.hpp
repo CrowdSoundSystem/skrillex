@@ -15,12 +15,12 @@ struct SessionData {
     int session_id;
 };
 
-struct Countable {
+struct Countable : public SessionData {
     int count;
     int votes;
 };
 
-struct Artist : public SessionData, Countable {
+struct Artist : public Countable {
     int         id;
     std::string name;
 
@@ -30,7 +30,7 @@ struct Artist : public SessionData, Countable {
     friend bool operator==(const Artist& a, const Artist& b);
 };
 
-struct Genre : public SessionData, Countable {
+struct Genre : public Countable {
     int         id;
     std::string name;
 
@@ -39,7 +39,7 @@ struct Genre : public SessionData, Countable {
     friend bool operator==(const Genre& a, const Genre& b);
 };
 
-struct Song : public SessionData, Countable {
+struct Song : public Countable {
     int         id;
     Artist      artist;
     Genre       genre;
