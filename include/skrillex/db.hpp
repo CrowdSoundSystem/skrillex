@@ -29,6 +29,7 @@
 namespace skrillex {
     namespace internal {
         class Store;
+        class StoreMutator;
     }
 
     class DB;
@@ -61,7 +62,9 @@ namespace skrillex {
         Status addArtist(Artist& artist);
         Status addGenre(Genre& genre);
 
-        Status vote(Song& s, int amount);
+        Status voteSong(Song& song, int amount);
+        Status voteArtist(Artist& artist, int amount);
+        Status voteGenre(Genre& genre, int amount);
 
     private:
         DB(std::string path, Options options);
@@ -69,6 +72,7 @@ namespace skrillex {
         DB(const DB&& other) = delete;
 
         friend Status open(DB*& db, std::string path, Options options);
+        friend class internal::StoreMutator;
     private:
         enum class State {
             Closed,

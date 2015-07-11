@@ -36,6 +36,7 @@ namespace skrillex {
             db->store_ = make_unique<MemoryStore>();
         }
 
+        db->store_->createSession();
         return Status::OK();
     }
 
@@ -79,6 +80,7 @@ namespace skrillex {
 
         return store_->getQueue(set);
     }
+
     Status DB::queueSong(int song_id) {
         if (!isOpen()) {
             return Status::Error("Database closed.");
@@ -107,11 +109,27 @@ namespace skrillex {
         return store_->addGenre(genre);
     }
 
-    Status DB::vote(Song& song, int amount) {
+    Status DB::voteSong(Song& song, int amount) {
         if (!isOpen()) {
             return Status::Error("Database closed.");
         }
 
-        return store_->vote(song, amount);
+        return store_->voteSong(song, amount, WriteOptions());
+    }
+
+    Status DB::voteArtist(Artist& artist, int amount) {
+        if (!isOpen()) {
+            return Status::Error("Database closed.");
+        }
+
+        return store_->voteArtist(artist, amount, WriteOptions());
+    }
+
+    Status DB::voteGenre(Genre& genre, int amount) {
+        if (!isOpen()) {
+            return Status::Error("Database closed.");
+        }
+
+        return store_->voteGenre(genre, amount, WriteOptions());
     }
 }

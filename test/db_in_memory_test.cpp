@@ -7,9 +7,11 @@
 
 #include "skrillex/db.hpp"
 #include "skrillex/dbo.hpp"
+#include "mutator.hpp"
 
 using namespace std;
 using namespace skrillex;
+using namespace skrillex::internal;
 
 TEST(InMemoryDatabaseTests, Init) {
     DB* raw = 0;
@@ -89,6 +91,8 @@ TEST(InMemoryDatabaseTests, InsertAndGet) {
 
         songs.push_back(s);
     }
+
+    Store* store = StoreMutator::getStore(db.get());
 
     ResultSet<Song> rs_songs;
     EXPECT_EQ(Status::OK(), db->getSongs(rs_songs));

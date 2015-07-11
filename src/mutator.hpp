@@ -1,9 +1,9 @@
 //
 // mutator.hpp
 //
-// Provides private access to a ResultSet. This allows the internal
-// database to modify ResultSets at will, while preventing the 'users'
-// from ever modifying a ResultSet.
+// Provides various mutators used for 'backdooring'
+// internal structures of DB objects. Uses include
+// modification of ResultSets, and mock testing.
 //
 
 #ifndef skrillex_mutator_hpp
@@ -11,6 +11,7 @@
 
 #include <vector>
 
+#include "skrillex/db.hpp"
 #include "skrillex/result_set.hpp"
 
 namespace skrillex {
@@ -25,6 +26,13 @@ namespace internal {
         template<typename T>
         static int& getVersion(ResultSet<T>& rs) {
             return rs.data_version_;
+        }
+    };
+
+    class StoreMutator {
+    public:
+        static Store* getStore(DB* db) {
+            return db->store_.get();
         }
     };
 }

@@ -1,9 +1,12 @@
 #ifndef skrillex_memory_store_hpp
 #define skrillex_memory_store_hpp
 
+#include <map>
 #include <queue>
+#include <set>
 #include <vector>
 
+#include "skrillex/dbo.hpp"
 #include "skrillex/options.hpp"
 #include "skrillex/result_set.hpp"
 #include "skrillex/status.hpp"
@@ -33,14 +36,21 @@ namespace internal {
         Status addArtist(Artist& artist);
         Status addGenre(Genre& genre);
 
-        Status vote(Song& s, int amount);
+        Status voteSong(Song& song, int amount, WriteOptions options);
+        Status voteArtist(Artist& artist, int amount, WriteOptions options);
+        Status voteGenre(Genre& genre, int amount, WriteOptions options);
+
+        Status createSession();
+        Status createSession(int& result);
+        Status getSession(int& result);
 
     private:
-        std::vector<Song>   songs_;
-        std::vector<Artist> artists_;
-        std::vector<Genre>  genres_;
+        std::map<int, std::vector<Song>>  songs_;
+        std::map<int, std::vector<Artist>> artists_;
+        std::map<int, std::vector<Genre>>  genres_;
 
         std::queue<Song>    song_queue_;
+        std::set<int>       sessions_;
 
         int song_id_counter_;
         int artist_id_counter_;
