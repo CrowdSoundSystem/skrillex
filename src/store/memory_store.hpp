@@ -2,7 +2,6 @@
 #define skrillex_memory_store_hpp
 
 #include <map>
-#include <queue>
 #include <set>
 #include <vector>
 
@@ -49,7 +48,7 @@ namespace internal {
         std::map<int, std::vector<Artist>> artists_;
         std::map<int, std::vector<Genre>>  genres_;
 
-        std::queue<Song>    song_queue_;
+        std::vector<Song>    song_queue_;
         std::set<int>       sessions_;
 
         int song_id_counter_;

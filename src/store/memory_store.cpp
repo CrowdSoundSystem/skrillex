@@ -213,22 +213,26 @@ namespace internal {
         vector<Song>& set_data = ResultSetMutator::getVector<Song>(set);
         set_data.clear();
 
-        copy(songs_.begin(), songs_.end(), back_inserter(set_data));
+        copy(song_queue_.begin(), song_queue_.end(), back_inserter(set_data));
 
         return Status::OK();
     }
 
     Status MemoryStore::queueSong(int song_id) {
         // Make sure the song id actually exists!
-        auto song = find_if(songs_.begin(), songs_.end(), [song_id](const Song& s) {
+        auto session = songs_.find(session_id_);
+        if (session == songs_.end()) {
+            return Status::Error("Could not queue song: session uninitialized");
+        }
+
+        auto song = find_if(session->second.begin(), session->second.end(), [song_id](const Song& s) {
             return s.id == song_id;
         });
-
-        if (song == songs_.end()) {
+        if (song == session->second.end()) {
             return Status::NotFound("Could not queue song");
         }
 
-        song_queue_.push(*song);
+        song_queue_.push_back(*song);
 
         return Status::OK();
     }
@@ -239,17 +243,21 @@ namespace internal {
         }
 
         Song song = song_queue_.front();
-        song_queue_.pop();
+        song_queue_.erase(song_queue_.begin());
 
-        auto it = find_if(songs_.begin(), songs_.end(), [&song](const Song& s) {
-            return s.id == song.id;
-        });
+        uint64_t ts = timestamp();
 
-        if (it == songs_.end()) {
-            return Status::Error("Invalid State: Song existed in queue, but not database");
+        for (auto& it : songs_) {
+            auto s = find_if(it.second.begin(), it.second.end(), [&song](const Song& s) {
+                return s.id == song.id;
+            });
+
+            if (s == it.second.end()) {
+               return Status::Error("Invalid State: Song existed in queue, but not in database");
+            }
+
+            s->last_played = ts;
         }
-
-        it->last_played = timestamp();
 
         return Status::OK();
     }
@@ -313,11 +321,20 @@ namespace internal {
             options.session_id = session_id_;
         }
 
-        auto s = find_if(songs_.begin(), songs_.end(), [options, song] (const Song& s) {
+        if (options.session_id == -1) {
+            return Status::NotImplemented("Memory Store does not implement NOT EQUAL session queries.");
+        }
+
+        auto session = songs_.find(options.session_id);
+        if (session == songs_.end()) {
+            return Status::Error("Invalid state: session not found");
+        }
+
+        auto s = find_if(session->second.begin(), session->second.end(), [options, song] (const Song& s) {
             return song.id == s.id && s.session_id == options.session_id;
         });
 
-        if (s == songs_.end()) {
+        if (s == session->second.end()) {
             return Status::NotFound("Could not find song to vote.");
         }
 
@@ -332,12 +349,21 @@ namespace internal {
             options.session_id = session_id_;
         }
 
-        auto a = find_if(artists_.begin(), artists_.end(), [options, artist] (const Artist& a) {
+        if (options.session_id == -1) {
+            return Status::NotImplemented("Memory Store does not implement NOT EQUAL session queries.");
+        }
+
+        auto session = artists_.find(options.session_id);
+        if (session == artists_.end()) {
+            return Status::Error("Invalid state: session not found");
+        }
+
+        auto a = find_if(session->second.begin(), session->second.end(), [options, artist] (const Artist& a) {
             return artist.id == a.id && a.session_id == options.session_id;
         });
 
-        if (a == artists_.end()) {
-            return Status::NotFound("Could not find artist to vote.");
+        if (a == session->second.end()) {
+            return Status::NotFound("Could not find song to vote.");
         }
 
         a->votes += amount;
@@ -351,12 +377,21 @@ namespace internal {
             options.session_id = session_id_;
         }
 
-        auto g = find_if(genres_.begin(), genres_.end(), [options, genre] (const Genre& g) {
+        if (options.session_id == -1) {
+            return Status::NotImplemented("Memory Store does not implement NOT EQUAL session queries.");
+        }
+
+        auto session = genres_.find(options.session_id);
+        if (session == genres_.end()) {
+            return Status::Error("Invalid state: session not found");
+        }
+
+        auto g = find_if(session->second.begin(), session->second.end(), [options, genre] (const Genre& g) {
             return genre.id == g.id && g.session_id == options.session_id;
         });
 
-        if (g == genres_.end()) {
-            return Status::NotFound("Could not find genre to vote.");
+        if (g == session->second.end()) {
+            return Status::NotFound("Could not find song to vote.");
         }
 
         g->votes += amount;
