@@ -35,6 +35,10 @@ namespace internal {
         Status addArtist(Artist& artist);
         Status addGenre(Genre& genre);
 
+        Status countSong(Song& song, WriteOptions options);
+        Status countArtist(Artist& artist, WriteOptions options);
+        Status countGenre(Genre& genre, WriteOptions options);
+
         Status voteSong(Song& song, int amount, WriteOptions options);
         Status voteArtist(Artist& artist, int amount, WriteOptions options);
         Status voteGenre(Genre& genre, int amount, WriteOptions options);
@@ -42,6 +46,7 @@ namespace internal {
         Status createSession();
         Status createSession(int& result);
         Status getSession(int& result);
+        Status getSessionCount(int& result);
 
     private:
         std::map<int, std::vector<Song>>  songs_;

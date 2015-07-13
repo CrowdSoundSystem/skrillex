@@ -62,6 +62,10 @@ namespace skrillex {
         Status addArtist(Artist& artist);
         Status addGenre(Genre& genre);
 
+        Status countSong(Song& song);
+        Status countArtist(Artist& artist);
+        Status countGenre(Genre& genre);
+
         Status voteSong(Song& song, int amount);
         Status voteArtist(Artist& artist, int amount);
         Status voteGenre(Genre& genre, int amount);

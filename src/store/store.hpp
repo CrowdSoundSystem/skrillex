@@ -25,6 +25,10 @@ namespace internal {
         virtual Status addArtist(Artist& artist) = 0;
         virtual Status addGenre(Genre& genre) = 0;
 
+        virtual Status countSong(Song& s, WriteOptions options) = 0;
+        virtual Status countArtist(Artist& a, WriteOptions options) = 0;
+        virtual Status countGenre(Genre& g, WriteOptions options) = 0;
+
         virtual Status voteSong(Song& s, int amount, WriteOptions options) = 0;
         virtual Status voteArtist(Artist& s, int amount, WriteOptions options) = 0;
         virtual Status voteGenre(Genre& s, int amount, WriteOptions options) = 0;
@@ -32,6 +36,7 @@ namespace internal {
         virtual Status createSession() = 0;
         virtual Status createSession(int& result) = 0;
         virtual Status getSession(int& result) = 0;
+        virtual Status getSessionCount(int& result) = 0;
     };
 }
 }

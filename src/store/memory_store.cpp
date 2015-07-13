@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <chrono>
+#include <iostream>
 #include <vector>
 
 #include "skrillex/dbo.hpp"
@@ -25,7 +26,6 @@ namespace internal {
     uint64_t timestamp() {
         return chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
     }
-
 
     MemoryStore::MemoryStore()
     : MemoryStore(0)
@@ -78,9 +78,11 @@ namespace internal {
                 break;
         }
 
-        size_t erase_size = set_data.size() - (size_t)options.result_limit;
-        if (erase_size > 0) {
-            set_data.erase(set_data.end() - erase_size, set_data.end());
+        if (options.result_limit) {
+            size_t erase_size = set_data.size() - (size_t)options.result_limit;
+            if (erase_size > 0) {
+                set_data.erase(set_data.end() - erase_size, set_data.end());
+            }
         }
 
         return Status::OK();
@@ -121,9 +123,11 @@ namespace internal {
                 break;
         }
 
-        size_t erase_size = set_data.size() - (size_t)options.result_limit;
-        if (erase_size > 0) {
-            set_data.erase(set_data.end() - erase_size, set_data.end());
+        if (options.result_limit) {
+            size_t erase_size = set_data.size() - (size_t)options.result_limit;
+            if (erase_size > 0) {
+                set_data.erase(set_data.end() - erase_size, set_data.end());
+            }
         }
 
         return Status::OK();
@@ -164,9 +168,11 @@ namespace internal {
                 break;
         }
 
-        size_t erase_size = set_data.size() - (size_t)options.result_limit;
-        if (erase_size > 0) {
-            set_data.erase(set_data.end() - erase_size, set_data.end());
+        if (options.result_limit) {
+            size_t erase_size = set_data.size() - (size_t)options.result_limit;
+            if (erase_size > 0) {
+                set_data.erase(set_data.end() - erase_size, set_data.end());
+            }
         }
 
         return Status::OK();
@@ -228,6 +234,7 @@ namespace internal {
         auto song = find_if(session->second.begin(), session->second.end(), [song_id](const Song& s) {
             return s.id == song_id;
         });
+
         if (song == session->second.end()) {
             return Status::NotFound("Could not queue song");
         }
@@ -267,14 +274,23 @@ namespace internal {
         song.count = 0;
         song.votes = 0;
 
+        if (songs_.empty()) {
+            return Status::Error("Invalid State: No Song Table.");
+        }
+
         for (auto& it : songs_) {
-            if (it.first == session_id_) {
-                Song s = song;
-                s.count = 1;
-                it.second.push_back(s);
-            } else {
-                it.second.push_back(song);
+            // If the song exists, don't do anything.
+            // Note: We're relying on the fact that all
+            // sessions have the same songs.
+            auto s = find_if(it.second.begin(), it.second.end(), [&song] (const Song& s) {
+                return s.id == song.id;
+            });
+
+            if (s != it.second.end()) {
+                return Status::OK();
             }
+
+            it.second.push_back(song);
         }
 
         return Status::OK();
@@ -284,6 +300,10 @@ namespace internal {
         artist.id = ++artist_id_counter_;
         artist.count = 0;
         artist.votes = 0;
+
+        if (artists_.empty()) {
+            return Status::Error("Invalid State: No Artist Table.");
+        }
 
         for (auto& it : artists_) {
             if (it.first == session_id_) {
@@ -303,6 +323,10 @@ namespace internal {
         genre.count = 0;
         genre.votes = 0;
 
+        if (genres_.empty()) {
+            return Status::Error("Invalid State: No Genre Table.");
+        }
+
         for (auto& it : genres_) {
             if (it.first == session_id_) {
                 Genre g = genre;
@@ -313,6 +337,18 @@ namespace internal {
             }
         }
 
+        return Status::OK();
+    }
+
+    Status MemoryStore::countSong(Song& song, WriteOptions options) {
+        return Status::OK();
+    }
+
+    Status MemoryStore::countArtist(Artist& artist, WriteOptions options) {
+        return Status::OK();
+    }
+
+    Status MemoryStore::countGenre(Genre& genre, WriteOptions options) {
         return Status::OK();
     }
 
@@ -401,18 +437,53 @@ namespace internal {
     }
 
     Status MemoryStore::createSession() {
-        session_id_++;
-
-        return Status::OK();
+        int r = 0;
+        return createSession(r);
     }
     Status MemoryStore::createSession(int& result) {
-        result = ++session_id_;
+         // If a session exists, copy and reset state
+        if (session_id_) {
+            auto songs = songs_.find(session_id_);
+            if (songs == songs_.end()) {
+                return Status::Error("Could not create session, no songs in session.");
+            }
+
+            auto artists = artists_.find(session_id_);
+            if (artists == artists_.end()) {
+                return Status::Error("Could not create session, no artists in session.");
+            }
+
+            auto genres = genres_.find(session_id_);
+            if (genres == genres_.end()) {
+                return Status::Error("Could not create session, no genres in session.");
+            }
+
+            session_id_++;
+            songs_[session_id_]    = songs->second;
+            artists_[session_id_] = artists->second;
+            genres_[session_id_]  = genres->second;
+        } else {
+            session_id_++;
+
+            songs_[session_id_]   = std::vector<Song>();
+            artists_[session_id_] = std::vector<Artist>();
+            genres_[session_id_]  = std::vector<Genre>();
+
+        }
+
+        result = session_id_;
 
         return Status::OK();
     }
 
     Status MemoryStore::getSession(int& result) {
         result = session_id_;
+
+        return Status::OK();
+    }
+
+    Status MemoryStore::getSessionCount(int& result) {
+        result = sessions_.size();
 
         return Status::OK();
     }

@@ -10,6 +10,7 @@
 #ifndef skrillex_status_hpp
 #define skrillex_status_hpp
 
+#include <ostream>
 #include <string>
 
 namespace skrillex {
@@ -32,6 +33,9 @@ namespace skrillex {
         // functions (i.e. Status::OK()) to a status doesn't cause
         // problems (looking at you, gtest)
         friend bool operator==(const Status& a, const Status& b);
+        friend bool operator!=(const Status& a, const Status& b);
+
+        friend std::ostream& operator<<(std::ostream& os, const Status& status);
 
         static Status OK() {
             return Status();

@@ -109,6 +109,16 @@ namespace skrillex {
         return store_->addGenre(genre);
     }
 
+    Status DB::countSong(Song& song) {
+        return store_->countSong(song, WriteOptions());
+    }
+    Status DB::countArtist(Artist& artist) {
+        return store_->countArtist(artist, WriteOptions());
+    }
+    Status DB::countGenre(Genre& genre) {
+        return store_->countGenre(genre, WriteOptions());
+    }
+
     Status DB::voteSong(Song& song, int amount) {
         if (!isOpen()) {
             return Status::Error("Database closed.");
