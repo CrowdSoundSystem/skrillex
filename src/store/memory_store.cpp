@@ -341,14 +341,87 @@ namespace internal {
     }
 
     Status MemoryStore::countSong(Song& song, WriteOptions options) {
+        if (!options.session_id) {
+            options.session_id = session_id_;
+        }
+
+        if (options.session_id == -1) {
+            return Status::NotImplemented("Memory Store does not implement NOT EQUAL session queries");
+        }
+
+        auto session = songs_.find(options.session_id);
+        if (session == songs_.end()) {
+            return Status::Error("Invalid state: session not found.");
+        }
+
+        auto s = find_if(session->second.begin(), session->second.end(), [options, song] (const Song& s) {
+            return song.id == s.id && s.session_id == options.session_id;
+        });
+
+        if (s == session->second.end()) {
+            return Status::NotFound("Could not find song to count.");
+        }
+
+        s->count++;
+        song.count = s->count;
+
         return Status::OK();
     }
 
     Status MemoryStore::countArtist(Artist& artist, WriteOptions options) {
+        if (!options.session_id) {
+            options.session_id = session_id_;
+        }
+
+        if (options.session_id == -1) {
+            return Status::NotImplemented("Memory Store does not implement NOT EQUAL session queries");
+        }
+
+        auto session = artists_.find(options.session_id);
+        if (session == artists_.end()) {
+            return Status::Error("Invalid state: session not found.");
+        }
+
+        auto a = find_if(session->second.begin(), session->second.end(), [options, artist] (const Artist& a) {
+            return artist.id == a.id && a.session_id == options.session_id;
+        });
+
+        if (a == session->second.end()) {
+            return Status::NotFound("Could not find artist to count.");
+        }
+
+        a->count++;
+        artist.count = a->count;
+
         return Status::OK();
+;
     }
 
     Status MemoryStore::countGenre(Genre& genre, WriteOptions options) {
+        if (!options.session_id) {
+            options.session_id = session_id_;
+        }
+
+        if (options.session_id == -1) {
+            return Status::NotImplemented("Memory Store does not implement NOT EQUAL session queries");
+        }
+
+        auto session = genres_.find(options.session_id);
+        if (session == genres_.end()) {
+            return Status::Error("Invalid state: session not found.");
+        }
+
+        auto g = find_if(session->second.begin(), session->second.end(), [options, genre] (const Genre& g) {
+            return genre.id == g.id && g.session_id == options.session_id;
+        });
+
+        if (g == session->second.end()) {
+            return Status::NotFound("Could not find genre to count.");
+        }
+
+        g->count++;
+        genre.count = g->count;
+
         return Status::OK();
     }
 
@@ -363,7 +436,7 @@ namespace internal {
 
         auto session = songs_.find(options.session_id);
         if (session == songs_.end()) {
-            return Status::Error("Invalid state: session not found");
+            return Status::Error("Invalid state: session not found.");
         }
 
         auto s = find_if(session->second.begin(), session->second.end(), [options, song] (const Song& s) {
@@ -440,8 +513,9 @@ namespace internal {
         int r = 0;
         return createSession(r);
     }
+
     Status MemoryStore::createSession(int& result) {
-         // If a session exists, copy and reset state
+        // If a session exists, copy and reset state
         if (session_id_) {
             auto songs = songs_.find(session_id_);
             if (songs == songs_.end()) {
@@ -460,8 +534,19 @@ namespace internal {
 
             session_id_++;
             songs_[session_id_]    = songs->second;
-            artists_[session_id_] = artists->second;
-            genres_[session_id_]  = genres->second;
+            artists_[session_id_]  = artists->second;
+            genres_[session_id_]   = genres->second;
+
+            // Update all the session stuff. Lol so hacky...
+            for (auto& s : songs_[session_id_]) {
+                s.session_id = session_id_;
+            }
+            for (auto& a : artists_[session_id_]) {
+                a.session_id = session_id_;
+            }
+            for (auto& g : genres_[session_id_]) {
+                g.session_id = session_id_;
+            }
         } else {
             session_id_++;
 
@@ -474,6 +559,16 @@ namespace internal {
         sessions_.insert(session_id_);
         result = session_id_;
 
+        return Status::OK();
+    }
+
+    Status MemoryStore::changeSession(int session) {
+        auto id = sessions_.find(session);
+        if (id == sessions_.end()) {
+            return Status::NotFound("Could not change session: does not exist");
+        }
+
+        session_id_ = session;
         return Status::OK();
     }
 

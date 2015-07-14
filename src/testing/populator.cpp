@@ -1,3 +1,4 @@
+#include <iostream>
 #include <string>
 
 #include "skrillex/dbo.hpp"
@@ -125,26 +126,49 @@ namespace testing {
         }
 
         for (int i = 0; i < num_sessions; i++) {
+            int j = 0;
             for (auto& s : songs) {
                 Song t = s;
-                for (int j = 0; j < (i + 1); i++) {
+
+                // Count in an increasing order
+                for (int k = 0; k < (2 * i + j + 1); k++) {
                     db->countSong(t);
                 }
-            }
-            for (auto& a : artists) {
-                Artist t = a;
-                for (int j = 0; j < (i + 1); j++) {
-                    db->countArtist(t);
-                }
-            }
-            for (auto& g : genres) {
-                Genre t = g;
-                for (int j = 0; j < (i + 1); j++) {
-                    db->countGenre(t);
-                }
+
+                // Vote in a decreasing order
+                db->voteSong(t, 2 * i + songs.size() - j);
+                j++;
             }
 
-            if (i == num_sessions - 1) {
+            j = 0;
+            for (auto& a : artists) {
+                Artist t = a;
+
+                // Count in an increasing order
+                for (int k = 0; k < (2 * i + j + 1); k++) {
+                    db->countArtist(t);
+                }
+
+                // Vote in a decreasing order
+                db->voteArtist(t, artists.size() - j);
+                j++;
+            }
+
+            j = 0;
+            for (auto& g : genres) {
+                Genre t = g;
+
+                // Count in an increasing order
+                for (int k = 0; k < (2 * i + j + 1); k++) {
+                    db->countGenre(t);
+                }
+
+                // Vote in a decreasing order
+                db->voteGenre(t, genres.size() - j);
+                j++;
+            }
+
+            if (i != num_sessions - 1) {
                 store->createSession();
             }
         }

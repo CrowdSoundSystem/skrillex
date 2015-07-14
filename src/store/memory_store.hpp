@@ -45,6 +45,7 @@ namespace internal {
 
         Status createSession();
         Status createSession(int& result);
+        Status changeSession(int session);
         Status getSession(int& result);
         Status getSessionCount(int& result);
 
