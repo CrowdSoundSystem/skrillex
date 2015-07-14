@@ -8,11 +8,20 @@
 
 namespace skrillex {
 namespace testing {
-    class PopulatorData {
+    struct PopulatorData {
         std::vector<Song>   songs;
-        std::vector<Artist> artist;
-        std::vector<Genre>  genre;
+        std::vector<Artist> artists;
+        std::vector<Genre>  genres;
     };
+
+    /*
+     * Returns the data that should be populated
+     * into an empty database after calling populat_empty()
+     * or populate_full().
+     *
+     * Does not include anything about or vote information
+     */
+    PopulatorData get_populator_data(int num_songs, int num_artists, int num_genres);
 
     /*
      * Populates a database with basic data,

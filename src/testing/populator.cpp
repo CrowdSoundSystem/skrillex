@@ -1,6 +1,7 @@
 #include <string>
 
 #include "skrillex/dbo.hpp"
+#include "skrillex/status.hpp"
 #include "skrillex/testing/populator.hpp"
 #include "store/store.hpp"
 #include "mutator.hpp"
@@ -10,17 +11,48 @@ using namespace skrillex::internal;
 
 namespace skrillex {
 namespace testing {
-    struct PopulatorData {
-        vector<Song>   songs;
-        vector<Artist> artists;
-        vector<Genre>  genre;
-    };
+    PopulatorData get_populator_data(int num_songs, int num_artists, int num_genres) {
+        PopulatorData data;
 
-    PopulatorData getPopulatorData(int num_songs, int num_artists, int num_genres) {
+        for (int i = 0; i < num_genres; i++) {
+            Genre g;
+            g.id         = i + 1;
+            g.session_id = 1;
+            g.name       = "g" + to_string(i);
+            g.count      = 0;
+            g.votes      = 0;
 
+            data.genres.push_back(g);
+        }
+
+        for (int i = 0; i < num_artists; i++) {
+            Artist a;
+            a.id         = i + 1;
+            a.session_id = 0;
+            a.name       = "a" + to_string(i);
+            a.votes      = 0;
+            a.count      = 0;
+
+            data.artists.push_back(a);
+        }
+
+        for (int i = 0; i < num_songs; i++) {
+            Song s;
+            s.id         = i + 1;
+            s.session_id = 1;
+            s.artist     = data.artists[i % num_artists];
+            s.genre      = data.genres[i % num_genres];
+            s.name       = "s" + to_string(i);
+            s.votes      = 0;
+            s.count      = 0;
+
+            data.songs.push_back(s);
+        }
+
+        return data;
     }
 
-    Status populateEmpty(DB* db, int num_songs, int num_artists, int num_genres) {
+    Status populate_empty(DB* db, int num_songs, int num_artists, int num_genres) {
         if (!db) {
             return Status::Error("Cannot populate null database");
         }
@@ -29,42 +61,26 @@ namespace testing {
             return Status::Error("Database not open.");
         }
 
-        vector<Genre> genres;
-        vector<Artist> artists;
+        PopulatorData data = get_populator_data(num_songs, num_artists, num_genres);
         Status status = Status::OK();
-        for (int i = 0; i < num_genres; i++) {
-            Genre g;
-            g.name = "g" + to_string(i);
 
+        for (auto& g : data.genres) {
             status = db->addGenre(g);
-            if (status != Status::OK()) {
+            if (status) {
                 return status;
             }
-
-            genres.push_back(g);
         }
 
-        for (int i = 0; i < num_artists; i++) {
-            Artist a;
-            a.name = "a" + to_string(i);
-
+        for (auto& a : data.artists) {
             status = db->addArtist(a);
-            if (status != Status::OK()) {
+            if (status) {
                 return status;
             }
-
-            artists.push_back(a);
         }
 
-        for (int i = 0; i < num_songs; i++) {
-            Song s;
-            s.id     = i;
-            s.artist = artists[i % num_artists];
-            s.genre  = genres[i % num_genres];
-            s.name   = "s" + to_string(i);
-
+        for (auto& s : data.songs) {
             status = db->addSong(s);
-            if (status != Status::OK()) {
+            if (status) {
                 return status;
             }
         }
@@ -72,7 +88,7 @@ namespace testing {
         return status;
     }
 
-    Status populateFull(DB* db, int num_songs, int num_artists, int num_genres, int num_sessions) {
+    Status populate_full(DB* db, int num_songs, int num_artists, int num_genres, int num_sessions) {
         Status status = populate_empty(db, num_songs, num_artists, num_genres);
         if (status != Status::OK()) {
             return status;

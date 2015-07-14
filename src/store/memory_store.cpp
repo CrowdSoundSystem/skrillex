@@ -471,6 +471,7 @@ namespace internal {
 
         }
 
+        sessions_.insert(session_id_);
         result = session_id_;
 
         return Status::OK();

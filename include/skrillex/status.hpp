@@ -37,6 +37,10 @@ namespace skrillex {
 
         friend std::ostream& operator<<(std::ostream& os, const Status& status);
 
+        operator bool() const {
+            return !ok();
+        }
+
         static Status OK() {
             return Status();
         }

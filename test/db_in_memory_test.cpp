@@ -39,15 +39,44 @@ TEST(InMemoryDatabaseTests, Init) {
     ASSERT_FALSE(raw->isOpen());
 }
 
-TEST(InMemoryDatabaseTests, InsertAndGet) {
+TEST(InMemoryDatabaseTests, PopulateEmpty) {
     DB* raw = 0;
     Status s = open(raw, "", Options::InMemoryOptions());
     ASSERT_EQ(Status::OK(), s);
 
     shared_ptr<DB> db(raw);
-    populate_empty(raw, 10, 10, 100);
+    populate_empty(raw, 100, 10, 11);
 
-    vector<Genre> genres;
-    vector<Artist> artists;
-    vector<Song> songs;
+    Store* store = StoreMutator::getStore(raw);
+    PopulatorData data = get_populator_data(100, 10, 11);
+
+    int session_count = 0;
+    store->getSessionCount(session_count);
+    EXPECT_EQ(1, session_count);
+
+    ResultSet<Song> songs;
+    s = db->getSongs(songs);
+    EXPECT_EQ(Status::OK(), s);
+    EXPECT_EQ(100, songs.size());
+    for (auto& s : songs) {
+        EXPECT_EQ(data.songs[s.id - 1], s);
+        EXPECT_EQ(data.artists[(s.id - 1) % 10], s.artist);
+        EXPECT_EQ(data.genres[(s.id - 1) % 11], s.genre);
+    }
+
+    ResultSet<Artist> artists;
+    s = db->getArtists(artists);
+    EXPECT_EQ(Status::OK(), s);
+    EXPECT_EQ(10, artists.size());
+    for (auto& a : artists) {
+        EXPECT_EQ(data.artists[a.id - 1], a);
+    }
+
+    ResultSet<Genre> genres;
+    s = db->getGenres(genres);
+    EXPECT_EQ(Status::OK(), s);
+    EXPECT_EQ(11, genres.size());
+    for (auto& g : genres) {
+        EXPECT_EQ(data.genres[g.id - 1], g);
+    }
 }
