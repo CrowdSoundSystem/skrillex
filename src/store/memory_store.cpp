@@ -562,16 +562,6 @@ namespace internal {
         return Status::OK();
     }
 
-    Status MemoryStore::changeSession(int session) {
-        auto id = sessions_.find(session);
-        if (id == sessions_.end()) {
-            return Status::NotFound("Could not change session: does not exist");
-        }
-
-        session_id_ = session;
-        return Status::OK();
-    }
-
     Status MemoryStore::getSession(int& result) {
         result = session_id_;
 

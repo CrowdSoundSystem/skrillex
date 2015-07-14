@@ -40,6 +40,8 @@ TEST(InMemoryDatabaseTests, Init) {
 }
 
 TEST(InMemoryDatabaseTests, PopulateEmpty) {
+    ReadOptions limiter;
+
     DB* raw = 0;
     Status s = open(raw, "", Options::InMemoryOptions());
     ASSERT_EQ(Status::OK(), s);
@@ -64,6 +66,12 @@ TEST(InMemoryDatabaseTests, PopulateEmpty) {
         EXPECT_EQ(data.genres[((s.id - 1) % 11)], s.genre);
     }
 
+    // Limit to 30
+    limiter.result_limit = 30;
+    s = db->getSongs(songs, limiter);
+    EXPECT_EQ(Status::OK(), s);
+    EXPECT_EQ(30, songs.size());
+
     ResultSet<Artist> artists;
     s = db->getArtists(artists);
     EXPECT_EQ(Status::OK(), s);
@@ -72,6 +80,12 @@ TEST(InMemoryDatabaseTests, PopulateEmpty) {
         EXPECT_EQ(data.artists[a.id - 1], a);
     }
 
+    // Limit to 5
+    limiter.result_limit = 5;
+    s = db->getArtists(artists, limiter);
+    EXPECT_EQ(Status::OK(), s);
+    EXPECT_EQ(5, artists.size());
+
     ResultSet<Genre> genres;
     s = db->getGenres(genres);
     EXPECT_EQ(Status::OK(), s);
@@ -79,9 +93,16 @@ TEST(InMemoryDatabaseTests, PopulateEmpty) {
     for (auto& g : genres) {
         EXPECT_EQ(data.genres[g.id - 1], g);
     }
+
+    limiter.result_limit = 8;
+    s = db->getGenres(genres, limiter);
+    EXPECT_EQ(Status::OK(), s);
+    EXPECT_EQ(8, genres.size());
+
 }
 
 TEST(InMemoryDatabaseTests, PopulateFull) {
+    ReadOptions readOptions;
     ReadOptions voteSort;
     voteSort.sort = SortType::Votes;
 
@@ -90,10 +111,10 @@ TEST(InMemoryDatabaseTests, PopulateFull) {
     ASSERT_EQ(Status::OK(), s);
 
     shared_ptr<DB> db(raw);
-    populate_full(raw, 10, 10, 11, 3);
+    populate_full(raw, 100, 10, 11, 3);
 
     Store* store = StoreMutator::getStore(raw);
-    PopulatorData data = get_populator_data(10, 10, 11);
+    PopulatorData data = get_populator_data(100, 10, 11);
 
     int session_id    = 0;
     int session_count = 0;
@@ -140,13 +161,13 @@ TEST(InMemoryDatabaseTests, PopulateFull) {
     }
 
     // Let's go back in time!
-    s = store->changeSession(2);
-    EXPECT_EQ(Status::OK(), s);
+    readOptions.session_id = 2;
+    voteSort.session_id  = 2;
 
     ResultSet<Song> oldSongs;
 
     // The counts should be different!
-    s = db->getSongs(oldSongs);
+    s = db->getSongs(oldSongs, readOptions);
     EXPECT_EQ(Status::OK(), s);
     EXPECT_GT(max_count, oldSongs.begin()->count);
 
@@ -168,7 +189,7 @@ TEST(InMemoryDatabaseTests, PopulateFull) {
         last_count = a.count;
     }
 
-    s = db->getArtists(artists);
+    s = db->getArtists(artists, readOptions);
     EXPECT_EQ(Status::OK(), s);
     last_count = 10000;
     last_vote  = 0;
@@ -193,7 +214,7 @@ TEST(InMemoryDatabaseTests, PopulateFull) {
         last_count = g.count;
     }
 
-    s = db->getGenres(genres);
+    s = db->getGenres(genres, readOptions);
     EXPECT_EQ(Status::OK(), s);
     last_count = 10000;
     last_vote  = 0;
@@ -205,3 +226,4 @@ TEST(InMemoryDatabaseTests, PopulateFull) {
         last_count = g.count;
     }
 }
+

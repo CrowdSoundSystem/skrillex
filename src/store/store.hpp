@@ -35,7 +35,6 @@ namespace internal {
 
         virtual Status createSession() = 0;
         virtual Status createSession(int& result) = 0;
-        virtual Status changeSession(int session) = 0;
 
         virtual Status getSession(int& result) = 0;
         virtual Status getSessionCount(int& result) = 0;
