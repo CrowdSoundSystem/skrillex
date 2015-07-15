@@ -40,6 +40,14 @@ namespace internal {
     MemoryStore::~MemoryStore() {
     }
 
+    Status MemoryStore::open(string db, Options options) {
+        if (options.session_id != 0) {
+            return Status::Error("Session does not exist");
+        }
+
+        return Status::OK();
+    }
+
     Status MemoryStore::getSongs(ResultSet<Song>& set, ReadOptions options) {
         lock_guard<mutex> lock(mutex);
         // For now, just overwrite the result set

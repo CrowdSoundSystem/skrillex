@@ -11,6 +11,8 @@ namespace internal {
     public:
         virtual ~Store() { }
 
+        virtual Status open(std::string db, Options options) = 0;
+
         virtual Status getSongs(ResultSet<Song>& set, ReadOptions options) = 0;
         virtual Status getArtists(ResultSet<Artist>& set, ReadOptions options) = 0;
         virtual Status getGenres(ResultSet<Genre>& set, ReadOptions options) = 0;

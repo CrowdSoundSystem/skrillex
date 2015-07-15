@@ -10,4 +10,5 @@ file(GLOB_RECURSE skrillex_srcs
 
 add_library(skrillex STATIC ${skrillex_srcs})
 set_target_properties(skrillex PROPERTIES PREFIX "")
+target_link_libraries(skrillex dl)
 install(TARGETS skrillex DESTINATION bin)

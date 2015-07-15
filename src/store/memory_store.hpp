@@ -21,6 +21,8 @@ namespace internal {
         MemoryStore(MemoryStore&& other)      = delete;
         ~MemoryStore();
 
+        Status open(std::string db, Options options);
+
         Status getSongs(ResultSet<Song>& set, ReadOptions options);
         Status getArtists(ResultSet<Artist>& set, ReadOptions options);
         Status getGenres(ResultSet<Genre>& set, ReadOptions options);

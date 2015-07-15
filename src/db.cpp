@@ -3,6 +3,7 @@
 #include "skrillex/db.hpp"
 #include "store/store.hpp"
 #include "store/memory_store.hpp"
+#include "store/sqlite3_store.hpp"
 
 using namespace std;
 using namespace skrillex::internal;
@@ -23,20 +24,25 @@ namespace skrillex {
             return Status::Error("Database is already open.");
         }
 
-        // TODO: Support SQLite3
-        if (!options.memory_only) {
-            return Status::Error("Non-memory databases not implemented");
-        }
-
         db = new DB(path, options);
         db->db_state_ = DB::State::Open;
 
         // Create the underlying store
         if (options.memory_only) {
-            db->store_.reset(new MemoryStore());
+            db->store_ = make_unique<MemoryStore>();
+        } else {
+            db->store_ = make_unique<Sqlite3Store>();
         }
 
-        db->store_->createSession();
+        Status s;
+        if ((s = db->store_->open(path, options))) {
+            return s;
+        }
+
+        if ((s = db->store_->createSession())) {
+            return s;
+        }
+
         return Status::OK();
     }
 

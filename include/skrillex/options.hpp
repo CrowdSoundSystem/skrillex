@@ -22,6 +22,12 @@ struct Options {
     // Default: false
     bool create_if_missing;
 
+    // If a database already exists, recreate the
+    // database, resulting in a brand new state.
+    //
+    // Default: false
+    bool recreate;
+
     // Enables caching of intermediate results.
     //
     // Default: true
@@ -45,6 +51,7 @@ struct Options {
     Options();
 
     static Options InMemoryOptions();
+    static Options TestOptions();
 };
 
 struct ReadOptions {

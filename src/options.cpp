@@ -3,6 +3,7 @@
 namespace skrillex {
     Options::Options()
     : create_if_missing(false)
+    , recreate(false)
     , enable_caching(true)
     , memory_only(false)
     , session_id(0)
@@ -24,6 +25,13 @@ namespace skrillex {
     Options Options::InMemoryOptions() {
         Options options;
         options.memory_only = true;
+        return options;
+    }
+
+    Options Options::TestOptions() {
+        Options options;
+        options.create_if_missing = true;
+        options.recreate          = true;
         return options;
     }
 }
