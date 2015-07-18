@@ -71,9 +71,89 @@ namespace internal {
 	}
 
     Status Sqlite3Store::getArtists(ResultSet<Artist>& set, ReadOptions options) {
+        vector<Artist>& set_data = ResultSetMutator::getVector<Artist>(set);
+        set_data.clear();
+
+        sqlite3_stmt* statement = 0;
+
+        string query = "SELECT Artists.ArtistID, Name, Votes, Count FROM Artists "
+            "LEFT JOIN ArtistVotes on Artists.ArtistID = ArtistVotes.ArtistID";
+
+        switch (options.sort) {
+            case SortType::Counts:
+                query += " ORDER BY Count DESC";
+                break;
+            case SortType::Votes:
+                query += " ORDER BY Votes DESC";
+                break;
+            default:
+                break;
+        }
+
+        if (options.result_limit > 0) {
+            query += " LIMIT " + to_string(options.result_limit);
+        }
+
+        int result = 0;
+        sqlite3_prepare_v2(db_, query.c_str(), -1, &statement, 0);
+        while ((result = sqlite3_step(statement)) == SQLITE_ROW) {
+            Artist a;
+            a.id    = sqlite3_column_int(statement, 0);
+            a.name  = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 1)));
+            a.votes = sqlite3_column_int(statement, 2);
+            a.count = sqlite3_column_int(statement, 3);
+            set_data.push_back(a);
+        }
+
+        sqlite3_finalize(statement);
+
+        if (result != SQLITE_OK && result != SQLITE_DONE) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+
 		return Status::OK();
 	}
     Status Sqlite3Store::getGenres(ResultSet<Genre>& set, ReadOptions options) {
+        vector<Genre>& set_data = ResultSetMutator::getVector<Genre>(set);
+        set_data.clear();
+
+        sqlite3_stmt* statement = 0;
+
+        string query = "SELECT Genres.GenreID, Name, Votes, Count FROM Genres "
+            "LEFT JOIN GenreVotes on Genres.GenreID = GenreVotes.GenreID";
+
+        switch (options.sort) {
+            case SortType::Counts:
+                query += " ORDER BY Count";
+                break;
+            case SortType::Votes:
+                query += " ORDER BY Votes";
+                break;
+            default:
+                break;
+        }
+
+        if (options.result_limit > 0) {
+            query += " LIMIT " + to_string(options.result_limit);
+        }
+
+        int result = 0;
+        sqlite3_prepare_v2(db_, query.c_str(), -1, &statement, 0);
+        while ((result = sqlite3_step(statement)) == SQLITE_ROW) {
+            Genre g;
+            g.id    = sqlite3_column_int(statement, 0);
+            g.name  = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 1)));
+            g.votes = sqlite3_column_int(statement, 2);
+            g.count = sqlite3_column_int(statement, 3);
+            set_data.push_back(g);
+        }
+
+        sqlite3_finalize(statement);
+
+        if (result != SQLITE_OK && result != SQLITE_DONE) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+
 		return Status::OK();
 	}
 
@@ -164,7 +244,6 @@ namespace internal {
         }
 
 		return Status::OK();
-;
 	}
 
     Status Sqlite3Store::countSong(Song& song, WriteOptions options) {

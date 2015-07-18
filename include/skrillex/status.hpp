@@ -83,8 +83,6 @@ namespace skrillex {
         {
         }
 
-
-
     private:
         Code        code_;
         std::string message_;
