@@ -63,4 +63,20 @@ TEST(Sqlite3DatabaseTests, PopulateEmpty) {
         EXPECT_EQ(0, g.votes);
         EXPECT_EQ(0, g.count);
     }
+
+    ResultSet<Song> songs;
+    s = db->getSongs(songs);
+    EXPECT_EQ(Status::OK(), s);
+    EXPECT_EQ(100, songs.size());
+    for (auto& s : songs) {
+        EXPECT_EQ("s", s.name.substr(0, 1));
+        EXPECT_EQ("a", s.artist.name.substr(0, 1));
+        EXPECT_EQ("g", s.genre.name.substr(0, 1));
+
+        EXPECT_EQ(((s.id - 1) % 11) + 1, s.genre.id);
+        EXPECT_EQ(((s.id - 1) % 10) + 1, s.artist.id);
+
+        EXPECT_EQ(0, s.count);
+        EXPECT_EQ(0, s.votes);
+    }
 }

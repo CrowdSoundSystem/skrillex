@@ -30,14 +30,25 @@ namespace internal {
     }
 
     Status Sqlite3Store::getSongs(ResultSet<Song>& set, ReadOptions options) {
-        vector<Song> set_data = ResultSetMutator::getVector<Song>(set);
+        vector<Song>& set_data = ResultSetMutator::getVector<Song>(set);
         set_data.clear();
 
         sqlite3_stmt* statement = 0;
 
-        string query = "SELECT Song.SongID, Song.Name FROM Songs "
-            "JOIN SongVotes on Songs.SongID = SongVotes.SongID";
+        // Mirror, mirror, on the wall
+        // Who is the ugliest query, of them all
+        string query =
+            "SELECT Songs.SongID, Songs.Name, Count, Votes, Artists.ArtistID, Artists.Name, Genres.GenreID, Genres.Name FROM Songs "
+            "LEFT JOIN SongVotes ON Songs.SongID   = SongVotes.SongID "
+            "LEFT JOIN Artists   ON Songs.ArtistID = Artists.ArtistID "
+            "LEFT JOIN Genres    ON Songs.GenreID  = Genres.GenreID";
 
+        // What does our query, need to do?
+        // Well, we need to
+        //     1) Get all Songs, with votes and counts
+        //     2) For each song:
+        //         a) Get the artist, with votes and count
+        //         b) Get the genre, with votes and count
         switch (options.sort) {
             case SortType::Counts:
                 query += " ORDER BY Count DESC";
@@ -57,8 +68,18 @@ namespace internal {
         sqlite3_prepare_v2(db_, query.c_str(), -1, &statement, 0);
         while ((result = sqlite3_step(statement)) == SQLITE_ROW) {
             Song s;
-            s.id   = sqlite3_column_int(statement, 0);
-            s.name = sqlite3_column_type(statement, 1);
+            s.id          = sqlite3_column_int(statement, 0);
+            s.name        = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 1)));
+            s.count       = sqlite3_column_int(statement, 2);
+            s.votes       = sqlite3_column_int(statement, 3);
+
+            s.artist.id   = sqlite3_column_int(statement, 4);
+            s.artist.name = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 5)));
+
+            s.genre.id    = sqlite3_column_int(statement, 6);
+            s.genre.name  = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 7)));
+
+            set_data.push_back(s);
         }
 
         sqlite3_finalize(statement);

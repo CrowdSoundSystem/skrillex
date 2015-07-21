@@ -23,6 +23,9 @@ namespace skrillex {
         if (db) {
             return Status::Error("Database is already open.");
         }
+        if (!options.memory_only && options.session_id) {
+            return Status::Error("SQLite3 does not support restoring sessions.");
+        }
 
         db = new DB(path, options);
         db->db_state_ = DB::State::Open;
