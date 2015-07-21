@@ -16,7 +16,6 @@ namespace internal {
     class MemoryStore : public Store {
     public:
         MemoryStore();
-        MemoryStore(int session_id);
         MemoryStore(const MemoryStore& other) = delete;
         MemoryStore(MemoryStore&& other)      = delete;
         ~MemoryStore();

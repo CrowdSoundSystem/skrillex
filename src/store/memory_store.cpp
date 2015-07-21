@@ -28,15 +28,10 @@ namespace internal {
     }
 
     MemoryStore::MemoryStore()
-    : MemoryStore(0)
-    {
-    }
-
-    MemoryStore::MemoryStore(int session_id)
     : song_id_counter_(0)
     , artist_id_counter_(0)
     , genre_id_counter_(0)
-    , session_id_(session_id)
+    , session_id_(0)
     {
     }
 
