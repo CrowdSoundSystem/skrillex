@@ -11,6 +11,7 @@ using namespace std;
 namespace skrillex {
 namespace internal {
     const vector<string> DROP_TABLES = {
+        "DROP TABLE IF EXISTS PlayHistory",
         "DROP TABLE IF EXISTS SongVotes",
         "DROP TABLE IF EXISTS ArtistVotes",
         "DROP TABLE IF EXISTS GenreVotes",
@@ -44,7 +45,7 @@ namespace internal {
 
         "CREATE TABLE IF NOT EXISTS SessionHistory ("
         "    SessionID INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "    Date      DATETIME NOT NULL"
+        "    Date      BIGINT NOT NULL"
         ")",
 
         "CREATE TABLE ArtistVotes ("
@@ -75,6 +76,13 @@ namespace internal {
         "    PRIMARY KEY(SongID, SessionID),"
         "    FOREIGN KEY(SongID)    REFERENCES Songs(SongID),"
         "    FOREIGN KEY(SessionID) REFERENCES SessionHistory(SessionID)"
+        ")",
+
+        "CREATE TABLE PlayHistory ("
+        "    SongID    INT NOT NULL,"
+        "    SessionID INT NOT NULL,"
+        "    Date      BIGINT NOT NULL,"
+        "    PRIMARY KEY(SongID, SessionID)"
         ")"
     };
 

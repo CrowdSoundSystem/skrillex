@@ -72,6 +72,7 @@ namespace internal {
             s.name        = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 1)));
             s.count       = sqlite3_column_int(statement, 2);
             s.votes       = sqlite3_column_int(statement, 3);
+            s.last_played = 0;
 
             s.artist.id   = sqlite3_column_int(statement, 4);
             s.artist.name = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 5)));
@@ -179,6 +180,48 @@ namespace internal {
 	}
 
     Status Sqlite3Store::getPlayHistory(ResultSet<Song>& set, ReadOptions options) {
+        vector<Song>& set_data =  ResultSetMutator::getVector<Song>(set);
+        set_data.clear();
+
+        sqlite3_stmt* statement = 0;
+
+        string query =
+            "SELECT Songs.SongID, Songs.Name, Date, Artists.ArtistID, Artists.Name, Genres.GenreID, Genres.NAME "
+            "LEFT JOIN Artists ON Songs.ArtistID = Artists.ArtistID "
+            "LEFT JOIN Genres  ON Songs.GenreID  = Genres.GenreID "
+            "JOIN PlayHistory  ON Songs.SongID   = PlayHistory.SongID "
+            "ORDER BY DESC Date";
+
+        if (options.result_limit > 0) {
+            query += " LIMIT " + to_string(options.result_limit);
+        }
+
+        int result = 0;
+        sqlite3_prepare_v2(db_, query.c_str(), -1, &statement, 0);
+        while ((result = sqlite3_step(statement)) == SQLITE_ROW) {
+            Song s;
+
+            s.id          = sqlite3_column_int(statement, 0);
+            s.name        = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 1)));
+            s.count       = sqlite3_column_int(statement, 2);
+            s.votes       = sqlite3_column_int(statement, 3);
+            s.last_played = sqlite3_column_int64(statement, 4);
+
+            s.artist.id   = sqlite3_column_int(statement, 5);
+            s.artist.name = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 6)));
+
+            s.genre.id    = sqlite3_column_int(statement, 7);
+            s.genre.name  = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 8)));
+
+            set_data.push_back(s);
+        }
+
+        sqlite3_finalize(statement);
+
+        if (result != SQLITE_OK && result != SQLITE_DONE) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+
 		return Status::OK();
 	}
 
