@@ -33,7 +33,7 @@ namespace skrillex {
 
         // Create the underlying store
         if (options.memory_only) {
-            db->store_ = make_unique<MemoryStore>();
+            db->store_.reset(new MemoryStore());
         }
 
         db->store_->createSession();
