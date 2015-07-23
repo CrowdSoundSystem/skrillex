@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <chrono>
 #include <iostream>
+#include <mutex>
+#include <thread>
 #include <vector>
 
 #include "skrillex/dbo.hpp"
@@ -39,6 +41,7 @@ namespace internal {
     }
 
     Status MemoryStore::getSongs(ResultSet<Song>& set, ReadOptions options) {
+        lock_guard<mutex> lock(mutex);
         // For now, just overwrite the result set
         // data. In the future, we can do more intelligent things.
         vector<Song>& set_data = ResultSetMutator::getVector<Song>(set);
@@ -84,6 +87,8 @@ namespace internal {
 }
 
     Status MemoryStore::getArtists(ResultSet<Artist>& set, ReadOptions options) {
+        lock_guard<mutex> lock(mutex);
+
         // For now, just overwrite the result set
         // data. In the future, we can do more intelligent things.
         vector<Artist>& set_data = ResultSetMutator::getVector<Artist>(set);
@@ -129,6 +134,8 @@ namespace internal {
     }
 
     Status MemoryStore::getGenres(ResultSet<Genre>& set, ReadOptions options) {
+        lock_guard<mutex> lock(mutex_);
+
         // For now, just overwrite the result set
         // data. In the future, we can do more intelligent things.
         vector<Genre>& set_data = ResultSetMutator::getVector<Genre>(set);
@@ -174,6 +181,8 @@ namespace internal {
     }
 
     Status MemoryStore::getPlayHistory(ResultSet<Song>& set, ReadOptions options) {
+        lock_guard<mutex> lock(mutex_);
+
         // For now, just overwrite the result set
         // data. In the future, we can do more intelligent things.
         vector<Song>& set_data = ResultSetMutator::getVector<Song>(set);
@@ -209,7 +218,9 @@ namespace internal {
     }
 
     Status MemoryStore::getQueue(ResultSet<Song>& set) {
-        // For now, just overwrite the result set
+        lock_guard<mutex> lock(mutex_);
+
+        /// For now, just overwrite the result set
         // data. In the future, we can do more intelligent things.
         vector<Song>& set_data = ResultSetMutator::getVector<Song>(set);
         set_data.clear();
@@ -220,7 +231,9 @@ namespace internal {
     }
 
     Status MemoryStore::queueSong(int song_id) {
-        // Make sure the song id actually exists!
+        lock_guard<mutex> lock(mutex_);
+
+        /// Make sure the song id actually exists!
         auto session = songs_.find(session_id_);
         if (session == songs_.end()) {
             return Status::Error("Could not queue song: session uninitialized");
@@ -240,6 +253,8 @@ namespace internal {
     }
 
     Status MemoryStore::songFinished() {
+        lock_guard<mutex> lock(mutex_);
+
         if (song_queue_.empty()) {
             return Status::Error("Queue Empty");
         }
@@ -265,6 +280,8 @@ namespace internal {
     }
 
     Status MemoryStore::addSong(Song& song) {
+        lock_guard<mutex> lock(mutex_);
+
         song.id = ++song_id_counter_;
         song.count = 0;
         song.votes = 0;
@@ -292,6 +309,8 @@ namespace internal {
     }
 
     Status MemoryStore::addArtist(Artist& artist) {
+        lock_guard<mutex> lock(mutex_);
+
         artist.id = ++artist_id_counter_;
         artist.count = 0;
         artist.votes = 0;
@@ -314,6 +333,8 @@ namespace internal {
     }
 
     Status MemoryStore::addGenre(Genre& genre) {
+        lock_guard<mutex> lock(mutex_);
+
         genre.id = ++genre_id_counter_;
         genre.count = 0;
         genre.votes = 0;
@@ -336,6 +357,8 @@ namespace internal {
     }
 
     Status MemoryStore::countSong(Song& song, WriteOptions options) {
+        lock_guard<mutex> lock(mutex_);
+
         if (!options.session_id) {
             options.session_id = session_id_;
         }
@@ -364,6 +387,8 @@ namespace internal {
     }
 
     Status MemoryStore::countArtist(Artist& artist, WriteOptions options) {
+        lock_guard<mutex> lock(mutex_);
+
         if (!options.session_id) {
             options.session_id = session_id_;
         }
@@ -393,6 +418,8 @@ namespace internal {
     }
 
     Status MemoryStore::countGenre(Genre& genre, WriteOptions options) {
+        lock_guard<mutex> lock(mutex_);
+
         if (!options.session_id) {
             options.session_id = session_id_;
         }
@@ -421,6 +448,8 @@ namespace internal {
     }
 
     Status MemoryStore::voteSong(Song& song, int amount, WriteOptions options) {
+        lock_guard<mutex> lock(mutex_);
+
         if (!options.session_id) {
             options.session_id = session_id_;
         }
@@ -449,6 +478,8 @@ namespace internal {
     }
 
     Status MemoryStore::voteArtist(Artist& artist, int amount, WriteOptions options) {
+        lock_guard<mutex> lock(mutex_);
+
         if (!options.session_id) {
             options.session_id = session_id_;
         }
@@ -477,6 +508,8 @@ namespace internal {
     }
 
     Status MemoryStore::voteGenre(Genre& genre, int amount, WriteOptions options) {
+        lock_guard<mutex> lock(mutex_);
+
         if (!options.session_id) {
             options.session_id = session_id_;
         }
@@ -510,6 +543,8 @@ namespace internal {
     }
 
     Status MemoryStore::createSession(int& result) {
+        lock_guard<mutex> lock(mutex_);
+
         // If a session exists, copy and reset state
         if (session_id_) {
             auto songs = songs_.find(session_id_);
@@ -558,12 +593,16 @@ namespace internal {
     }
 
     Status MemoryStore::getSession(int& result) {
+        lock_guard<mutex> lock(mutex_);
+
         result = session_id_;
 
         return Status::OK();
     }
 
     Status MemoryStore::getSessionCount(int& result) {
+        lock_guard<mutex> lock(mutex_);
+
         result = sessions_.size();
 
         return Status::OK();

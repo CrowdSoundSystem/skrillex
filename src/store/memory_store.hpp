@@ -2,6 +2,7 @@
 #define skrillex_memory_store_hpp
 
 #include <map>
+#include <mutex>
 #include <set>
 #include <vector>
 
@@ -49,12 +50,14 @@ namespace internal {
         Status getSessionCount(int& result);
 
     private:
-        std::map<int, std::vector<Song>>  songs_;
+        std::mutex mutex_;
+
+        std::map<int, std::vector<Song>>   songs_;
         std::map<int, std::vector<Artist>> artists_;
         std::map<int, std::vector<Genre>>  genres_;
 
-        std::vector<Song>    song_queue_;
-        std::set<int>       sessions_;
+        std::vector<Song> song_queue_;
+        std::set<int>     sessions_;
 
         int song_id_counter_;
         int artist_id_counter_;
