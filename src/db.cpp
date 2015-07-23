@@ -118,14 +118,14 @@ namespace skrillex {
         return store_->addGenre(genre);
     }
 
-    Status DB::countSong(Song& song) {
-        return store_->countSong(song, WriteOptions());
+    Status DB::countSong(Song& song, int amount) {
+        return store_->countSong(song, amount, WriteOptions());
     }
-    Status DB::countArtist(Artist& artist) {
-        return store_->countArtist(artist, WriteOptions());
+    Status DB::countArtist(Artist& artist, int amount) {
+        return store_->countArtist(artist, amount, WriteOptions());
     }
-    Status DB::countGenre(Genre& genre) {
-        return store_->countGenre(genre, WriteOptions());
+    Status DB::countGenre(Genre& genre, int amount) {
+        return store_->countGenre(genre, amount, WriteOptions());
     }
 
     Status DB::voteSong(Song& song, int amount) {

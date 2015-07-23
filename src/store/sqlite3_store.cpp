@@ -9,6 +9,10 @@ using namespace std;
 
 namespace skrillex {
 namespace internal {
+    uint64_t timestamp() {
+        return chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
+    }
+
     Sqlite3Store::Sqlite3Store()
     : db_(0)
     {
@@ -226,12 +230,71 @@ namespace internal {
 	}
 
     Status Sqlite3Store::getQueue(ResultSet<Song>& set) {
+        // For now, there's not a huge motivation to put the
+        // queue into the db, since it's reset when the program
+        // end anyway.
+        vector<Song>& set_data = ResultSetMutator::getVector(set);
+        set_data.clear();
+
+        copy(song_queue_.begin(), song_queue_.end(), back_inserter(set_data));
+
 		return Status::OK();
 	}
     Status Sqlite3Store::queueSong(int songId) {
+        // Get song from the database, and insert into queue.
+
+        sqlite3_stmt* statement = 0;
+
+        string query =
+            "SELECT Songs.SongID, Songs.Name, Count, Votes, Artists.ArtistID, Artists.Name, Genres.GenreID, Genres.Name FROM Songs "
+            "LEFT JOIN SongVotes ON Songs.SongID   = SongVotes.SongID "
+            "LEFT JOIN Artists   ON Songs.ArtistID = Artists.ArtistID "
+            "LEFT JOIN Genres    ON Songs.GenreID  = Genres.GenreID "
+            "WHERE Songs.SongID = " + to_string(songId);
+
+        int result = 0;
+        Song s;
+        s.id = -1;
+
+        sqlite3_prepare_v2(db_, query.c_str(), -1, &statement, 0);
+        while ((result = sqlite3_step(statement)) == SQLITE_ROW) {
+            s.id          = sqlite3_column_int(statement, 0);
+            s.name        = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 1)));
+            s.count       = sqlite3_column_int(statement, 2);
+            s.votes       = sqlite3_column_int(statement, 3);
+            s.last_played = 0;
+
+            s.artist.id   = sqlite3_column_int(statement, 4);
+            s.artist.name = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 5)));
+
+            s.genre.id    = sqlite3_column_int(statement, 6);
+            s.genre.name  = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 7)));
+        }
+
+        sqlite3_finalize(statement);
+
+        if (result != SQLITE_OK && result != SQLITE_DONE) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+
+        if (s.id == -1) {
+            return Status::NotFound("Could not queue song");
+        }
+
+        song_queue_.push_back(s);
 		return Status::OK();
 	}
     Status Sqlite3Store::songFinished() {
+        if (song_queue_.empty()) {
+            return Status::Error("Queue empty");
+        }
+
+        Song song = song_queue_.front();
+        song_queue_.erase(song_queue_.begin());
+
+        song.last_played = timestamp();
+
+        // Store in database
 		return Status::OK();
 	}
 
@@ -310,13 +373,13 @@ namespace internal {
 		return Status::OK();
 	}
 
-    Status Sqlite3Store::countSong(Song& song, WriteOptions options) {
+    Status Sqlite3Store::countSong(Song& song, int amount, WriteOptions options) {
 		return Status::OK();
 	}
-    Status Sqlite3Store::countArtist(Artist& artist, WriteOptions options) {
+    Status Sqlite3Store::countArtist(Artist& artist, int amount, WriteOptions options) {
 		return Status::OK();
 	}
-    Status Sqlite3Store::countGenre(Genre& genre, WriteOptions options) {
+    Status Sqlite3Store::countGenre(Genre& genre, int amount, WriteOptions options) {
 		return Status::OK();
 	}
 

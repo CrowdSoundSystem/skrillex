@@ -367,7 +367,7 @@ namespace internal {
         return Status::OK();
     }
 
-    Status MemoryStore::countSong(Song& song, WriteOptions options) {
+    Status MemoryStore::countSong(Song& song, int amount, WriteOptions options) {
         lock_guard<mutex> lock(mutex_);
 
         if (!options.session_id) {
@@ -391,13 +391,13 @@ namespace internal {
             return Status::NotFound("Could not find song to count.");
         }
 
-        s->count++;
+        s->count += amount;
         song.count = s->count;
 
         return Status::OK();
     }
 
-    Status MemoryStore::countArtist(Artist& artist, WriteOptions options) {
+    Status MemoryStore::countArtist(Artist& artist, int amount, WriteOptions options) {
         lock_guard<mutex> lock(mutex_);
 
         if (!options.session_id) {
@@ -421,14 +421,13 @@ namespace internal {
             return Status::NotFound("Could not find artist to count.");
         }
 
-        a->count++;
+        a->count += amount;
         artist.count = a->count;
 
         return Status::OK();
-;
     }
 
-    Status MemoryStore::countGenre(Genre& genre, WriteOptions options) {
+    Status MemoryStore::countGenre(Genre& genre, int amount, WriteOptions options) {
         lock_guard<mutex> lock(mutex_);
 
         if (!options.session_id) {
@@ -452,7 +451,7 @@ namespace internal {
             return Status::NotFound("Could not find genre to count.");
         }
 
-        g->count++;
+        g->count += amount;
         genre.count = g->count;
 
         return Status::OK();

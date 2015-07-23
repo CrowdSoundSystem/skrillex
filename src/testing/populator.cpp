@@ -132,7 +132,7 @@ namespace testing {
 
                 // Count in an increasing order
                 for (int k = 0; k < (2 * i + j + 1); k++) {
-                    db->countSong(t);
+                    db->countSong(t, 1);
                 }
 
                 // Vote in a decreasing order
@@ -146,7 +146,7 @@ namespace testing {
 
                 // Count in an increasing order
                 for (int k = 0; k < (2 * i + j + 1); k++) {
-                    db->countArtist(t);
+                    db->countArtist(t, 1);
                 }
 
                 // Vote in a decreasing order
@@ -160,7 +160,7 @@ namespace testing {
 
                 // Count in an increasing order
                 for (int k = 0; k < (2 * i + j + 1); k++) {
-                    db->countGenre(t);
+                    db->countGenre(t, 1);
                 }
 
                 // Vote in a decreasing order

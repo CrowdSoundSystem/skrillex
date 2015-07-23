@@ -37,9 +37,9 @@ namespace internal {
         Status addArtist(Artist& artist);
         Status addGenre(Genre& genre);
 
-        Status countSong(Song& song, WriteOptions options);
-        Status countArtist(Artist& artist, WriteOptions options);
-        Status countGenre(Genre& genre, WriteOptions options);
+        Status countSong(Song& song, int amount, WriteOptions options);
+        Status countArtist(Artist& artist, int amount, WriteOptions options);
+        Status countGenre(Genre& genre, int amount, WriteOptions options);
 
         Status voteSong(Song& song, int amount, WriteOptions options);
         Status voteArtist(Artist& artist, int amount, WriteOptions options);
