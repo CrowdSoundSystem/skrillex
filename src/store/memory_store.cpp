@@ -283,6 +283,7 @@ namespace internal {
         lock_guard<mutex> lock(mutex_);
 
         song.id = ++song_id_counter_;
+        song.last_played = 0;
         song.count = 0;
         song.votes = 0;
 
@@ -312,6 +313,7 @@ namespace internal {
         lock_guard<mutex> lock(mutex_);
 
         artist.id = ++artist_id_counter_;
+        artist.last_played = 0;
         artist.count = 0;
         artist.votes = 0;
 
@@ -336,6 +338,7 @@ namespace internal {
         lock_guard<mutex> lock(mutex_);
 
         genre.id = ++genre_id_counter_;
+        genre.last_played = 0;
         genre.count = 0;
         genre.votes = 0;
 
