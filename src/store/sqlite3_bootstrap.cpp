@@ -38,7 +38,7 @@ namespace internal {
         "    SongID   INTEGER PRIMARY KEY AUTOINCREMENT,"
         "    ArtistID INT,"
         "    GenreID  INT,"
-        "    Name     VarChar(255) NOT NULL,"
+        "    Name     VARCHAR(255) NOT NULL,"
         "    FOREIGN KEY(ArtistID) REFERENCES Artists(ArtistID),"
         "    FOREIGN KEY(GenreID)  REFERENCES Genres(GenreID)"
         ")",
@@ -48,14 +48,21 @@ namespace internal {
         "    Date      BIGINT NOT NULL"
         ")",
 
+        "CREATE TABLE IF NOT EXISTS UserActivity ("
+        "    UserID     VARCHAR(255) PRIMARY KEY,"
+        "    LastActive BIGINT NOT NULL"
+        ")",
+
         "CREATE TABLE ArtistVotes ("
         "    ArtistID  INT NOT NULL,"
         "    SessionID INT NOT NULL,"
+        "    UserID    VARCHAR(255) NOT NULL,"
         "    Count     INT NOT NULL DEFAULT 0,"
         "    Votes     INT NOT NULL DEFAULT 0,"
         "    PRIMARY KEY(ArtistID, SessionID),"
         "    FOREIGN KEY(ArtistID)  REFERENCES Artists(ArtistID),"
-        "    FOREIGN KEY(SessionID) REFERENCES SessionHistory(SessionID)"
+        "    FOREIGN KEY(SessionID) REFERENCES SessionHistory(SessionID),"
+        "    FOREIGN KEY(UserID)    REFERENCES UserActivity(UserID)"
         ")",
 
         "CREATE TABLE GenreVotes ("
@@ -65,7 +72,8 @@ namespace internal {
         "    Votes     INT NOT NULL DEFAULT 0,"
         "    PRIMARY KEY(GenreID, SessionID),"
         "    FOREIGN KEY(GenreID)   REFERENCES Genres(GenreID),"
-        "    FOREIGN KEY(SessionID) REFERENCES SessionHistory(SessionID)"
+        "    FOREIGN KEY(SessionID) REFERENCES SessionHistory(SessionID),"
+        "    FOREIGN KEY(UserID)    REFERENCES UserActivity(UserID)"
         ")",
 
         "CREATE TABLE SongVotes ("
@@ -75,7 +83,8 @@ namespace internal {
         "    Votes     INT NOT NULL DEFAULT 0,"
         "    PRIMARY KEY(SongID, SessionID),"
         "    FOREIGN KEY(SongID)    REFERENCES Songs(SongID),"
-        "    FOREIGN KEY(SessionID) REFERENCES SessionHistory(SessionID)"
+        "    FOREIGN KEY(SessionID) REFERENCES SessionHistory(SessionID),"
+        "    FOREIGN KEY(UserID)    REFERENCES UserActivity(UserID)"
         ")",
 
         "CREATE TABLE PlayHistory ("

@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <chrono>
 #include <iostream>
 #include <mutex>
 #include <thread>
@@ -7,6 +6,7 @@
 
 #include "skrillex/dbo.hpp"
 #include "store/memory_store.hpp"
+#include "util/time.hpp"
 #include "mutator.hpp"
 
 using namespace std;
@@ -23,10 +23,6 @@ namespace internal {
 
     bool voteSort(const Countable& a, const Countable& b) {
         return a.votes > b.votes;
-    }
-
-    uint64_t timestamp() {
-        return chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
     }
 
     MemoryStore::MemoryStore()

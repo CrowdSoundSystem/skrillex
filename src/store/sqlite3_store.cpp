@@ -3,16 +3,13 @@
 #include "skrillex/result_set.hpp"
 #include "sqlite3/sqlite3.h"
 #include "store/sqlite3_store.hpp"
+#include "util/time.hpp"
 #include "mutator.hpp"
 
 using namespace std;
 
 namespace skrillex {
 namespace internal {
-    uint64_t timestamp() {
-        return chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch()).count();
-    }
-
     Sqlite3Store::Sqlite3Store()
     : db_(0)
     {
@@ -236,13 +233,13 @@ namespace internal {
         vector<Song>& set_data = ResultSetMutator::getVector(set);
         set_data.clear();
 
+        lock_guard<mutex> lock(queue_lock_);
         copy(song_queue_.begin(), song_queue_.end(), back_inserter(set_data));
 
 		return Status::OK();
 	}
     Status Sqlite3Store::queueSong(int songId) {
         // Get song from the database, and insert into queue.
-
         sqlite3_stmt* statement = 0;
 
         string query =
@@ -281,7 +278,9 @@ namespace internal {
             return Status::NotFound("Could not queue song");
         }
 
+        lock_guard<mutex> lock(queue_lock_);
         song_queue_.push_back(s);
+
 		return Status::OK();
 	}
     Status Sqlite3Store::songFinished() {
@@ -289,12 +288,28 @@ namespace internal {
             return Status::Error("Queue empty");
         }
 
-        Song song = song_queue_.front();
-        song_queue_.erase(song_queue_.begin());
+        Song song;
+
+        {
+            lock_guard<mutex> lock(queue_lock_);
+            Song song = song_queue_.front();
+            song_queue_.erase(song_queue_.begin());
+        }
 
         song.last_played = timestamp();
 
-        // Store in database
+        // Interesting Question: Can we just save updated song?
+        //
+        // No! The song_queue_ acts purely as a cache. When a
+        // song in inserted to song_queue_, it's data is pulled
+        // from the database, and inserted. The data is never
+        // touched again! What this means is that at the time
+        // of popping off the queue, the data may be in an
+        // invalid state, so we must update the item before
+        // saving!
+
+        // TODO: Read from database
+        // TODO: Store in database
 		return Status::OK();
 	}
 
@@ -401,6 +416,7 @@ namespace internal {
 	}
 
     Status Sqlite3Store::getSession(int& result) {
+        result = session_id_;
 		return Status::OK();
 	}
     Status Sqlite3Store::getSessionCount(int& result) {

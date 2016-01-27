@@ -2,6 +2,7 @@
 #define skrillex_sqlite3store_hpp
 
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -55,6 +56,9 @@ namespace internal {
     private:
         sqlite3* db_;
         std::vector<Song> song_queue_;
+        std::mutex queue_lock_;
+
+        int session_id_;
     };
 }
 }
