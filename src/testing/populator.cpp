@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iostream>
 #include <string>
 
@@ -18,7 +19,6 @@ namespace testing {
         for (int i = 0; i < num_genres; i++) {
             Genre g;
             g.id         = i + 1;
-            g.session_id = 1;
             g.name       = "g" + to_string(i);
             g.count      = 0;
             g.votes      = 0;
@@ -29,7 +29,6 @@ namespace testing {
         for (int i = 0; i < num_artists; i++) {
             Artist a;
             a.id         = i + 1;
-            a.session_id = 0;
             a.name       = "a" + to_string(i);
             a.votes      = 0;
             a.count      = 0;
@@ -40,7 +39,6 @@ namespace testing {
         for (int i = 0; i < num_songs; i++) {
             Song s;
             s.id         = i + 1;
-            s.session_id = 1;
             s.artist     = data.artists[i % num_artists];
             s.genre      = data.genres[i % num_genres];
             s.name       = "s" + to_string(i);
@@ -112,6 +110,10 @@ namespace testing {
         if (status != Status::OK()) {
             return status;
         }
+		if (songs.size() != num_songs) {
+            //cout << "Songs detected: " << songs.size() << endl;
+			return Status::Error("Invalid number of songs");
+		}
 
         ResultSet<Artist> artists;
         status = db->getArtists(artists);
@@ -132,11 +134,11 @@ namespace testing {
 
                 // Count in an increasing order
                 for (int k = 0; k < (2 * i + j + 1); k++) {
-                    db->countSong(t, 1);
+                    db->voteSong("u" + to_string(k), t, 0);
                 }
 
                 // Vote in a decreasing order
-                db->voteSong(t, 2 * i + songs.size() - j);
+                db->voteSong("user", t, 2 * i + songs.size() - j);
                 j++;
             }
 
@@ -146,11 +148,11 @@ namespace testing {
 
                 // Count in an increasing order
                 for (int k = 0; k < (2 * i + j + 1); k++) {
-                    db->countArtist(t, 1);
+                    db->voteArtist("u" + to_string(k), t, 0);
                 }
 
                 // Vote in a decreasing order
-                db->voteArtist(t, artists.size() - j);
+                db->voteArtist("user", t, 2 * i + artists.size() - j);
                 j++;
             }
 
@@ -160,11 +162,11 @@ namespace testing {
 
                 // Count in an increasing order
                 for (int k = 0; k < (2 * i + j + 1); k++) {
-                    db->countGenre(t, 1);
+                    db->voteGenre("u" + to_string(k), t, 0);
                 }
 
                 // Vote in a decreasing order
-                db->voteGenre(t, genres.size() - j);
+                db->voteGenre("user", t, 2 * i + genres.size() - j);
                 j++;
             }
 

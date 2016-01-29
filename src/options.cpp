@@ -5,7 +5,6 @@ namespace skrillex {
     : create_if_missing(false)
     , recreate(false)
     , enable_caching(true)
-    , memory_only(false)
     , session_id(0)
     {
     }
@@ -14,18 +13,13 @@ namespace skrillex {
     : session_id(0)
     , result_limit(0)
     , sort(SortType::Counts)
+    , inactivity_threshold(300)
     {
     }
 
     WriteOptions::WriteOptions()
     : session_id(0)
     {
-    }
-
-    Options Options::InMemoryOptions() {
-        Options options;
-        options.memory_only = true;
-        return options;
     }
 
     Options Options::TestOptions() {

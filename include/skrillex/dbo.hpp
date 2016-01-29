@@ -7,15 +7,12 @@
 #ifndef skrillex_dbo_hpp
 #define skrillex_dbo_hpp
 
+#include <iostream>
 #include <string>
 
 namespace skrillex {
 
-struct SessionData {
-    int session_id;
-};
-
-struct Countable : public SessionData {
+struct Countable {
     int count;
     int votes;
 };
@@ -49,8 +46,10 @@ struct Song : public Countable {
     uint64_t    last_played;
 
     friend bool operator==(const Song& a, const Song& b);
-
+    friend std::ostream& operator<<(std::ostream& os, const Song& song);
 };
+
+std::ostream& operator<<(std::ostream& os, const Song& song);
 
 }
 

@@ -2,7 +2,6 @@
 
 #include "skrillex/db.hpp"
 #include "store/store.hpp"
-#include "store/memory_store.hpp"
 #include "store/sqlite3_store.hpp"
 
 using namespace std;
@@ -23,19 +22,14 @@ namespace skrillex {
         if (db) {
             return Status::Error("Database is already open.");
         }
-        if (!options.memory_only && options.session_id) {
+        if (options.session_id) {
             return Status::Error("SQLite3 does not support restoring sessions.");
         }
 
         db = new DB(path, options);
         db->db_state_ = DB::State::Open;
 
-        // Create the underlying store
-        if (options.memory_only) {
-            db->store_ = make_unique<MemoryStore>();
-        } else {
-            db->store_ = make_unique<Sqlite3Store>();
-        }
+        db->store_ = make_unique<Sqlite3Store>();
 
         Status s;
         if ((s = db->store_->open(path, options))) {
@@ -106,49 +100,59 @@ namespace skrillex {
         return store_->songFinished();
     }
 
+    Status DB::setActivity(std::string userId, int64_t timestamp) {
+        if (!isOpen()) {
+            return Status::Error("Database closed.");
+        }
+
+        return store_->setActivity(userId, timestamp);
+    }
+
     Status DB::addSong(Song& song) {
+        if (!isOpen()) {
+            return Status::Error("Database closed.");
+        }
+
         return store_->addSong(song);
     }
 
     Status DB::addArtist(Artist& artist) {
+        if (!isOpen()) {
+            return Status::Error("Database closed.");
+        }
+
         return store_->addArtist(artist);
     }
 
     Status DB::addGenre(Genre& genre) {
+        if (!isOpen()) {
+            return Status::Error("Database closed.");
+        }
+
         return store_->addGenre(genre);
     }
 
-    Status DB::countSong(Song& song, int amount) {
-        return store_->countSong(song, amount, WriteOptions());
-    }
-    Status DB::countArtist(Artist& artist, int amount) {
-        return store_->countArtist(artist, amount, WriteOptions());
-    }
-    Status DB::countGenre(Genre& genre, int amount) {
-        return store_->countGenre(genre, amount, WriteOptions());
-    }
-
-    Status DB::voteSong(Song& song, int amount) {
+    Status DB::voteSong(std::string userId, Song& song, int amount) {
         if (!isOpen()) {
             return Status::Error("Database closed.");
         }
 
-        return store_->voteSong(song, amount, WriteOptions());
+        return store_->voteSong(userId, song, amount, WriteOptions());
     }
 
-    Status DB::voteArtist(Artist& artist, int amount) {
+    Status DB::voteArtist(std::string userId, Artist& artist, int amount) {
         if (!isOpen()) {
             return Status::Error("Database closed.");
         }
 
-        return store_->voteArtist(artist, amount, WriteOptions());
+        return store_->voteArtist(userId, artist, amount, WriteOptions());
     }
 
-    Status DB::voteGenre(Genre& genre, int amount) {
+    Status DB::voteGenre(std::string userId, Genre& genre, int amount) {
         if (!isOpen()) {
             return Status::Error("Database closed.");
         }
 
-        return store_->voteGenre(genre, amount, WriteOptions());
+        return store_->voteGenre(userId, genre, amount, WriteOptions());
     }
 }

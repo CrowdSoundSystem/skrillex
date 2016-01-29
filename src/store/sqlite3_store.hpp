@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <mutex>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -36,29 +37,31 @@ namespace internal {
         Status queueSong(int songId);
         Status songFinished();
 
+        Status setActivity(std::string userId, int64_t timestamp);
+
         Status addSong(Song& song);
         Status addArtist(Artist& artist);
         Status addGenre(Genre& genre);
 
-        Status countSong(Song& song, int amount, WriteOptions options);
-        Status countArtist(Artist& artist, int amount, WriteOptions options);
-        Status countGenre(Genre& genre, int amount, WriteOptions options);
-
-        Status voteSong(Song& song, int amount, WriteOptions options);
-        Status voteArtist(Artist& artist, int amount, WriteOptions options);
-        Status voteGenre(Genre& genre, int amount, WriteOptions options);
+        Status voteSong(std::string userId, Song& song, int amount, WriteOptions options);
+        Status voteArtist(std::string userId, Artist& artist, int amount, WriteOptions options);
+        Status voteGenre(std::string userId, Genre& genre, int amount, WriteOptions options);
 
         Status createSession();
-        Status createSession(int& result);
+        Status createSession(int64_t& result);
 
-        Status getSession(int& result);
+        Status getSession(int64_t& result);
         Status getSessionCount(int& result);
     private:
-        sqlite3* db_;
-        std::vector<Song> song_queue_;
-        std::mutex queue_lock_;
+        Status insertUser(std::string userId);
 
-        int session_id_;
+    private:
+        sqlite3* db_;
+
+        std::mutex queue_lock_;
+        std::vector<Song> song_queue_;
+
+        int64_t session_id_;
     };
 }
 }

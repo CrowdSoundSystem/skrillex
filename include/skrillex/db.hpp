@@ -58,17 +58,15 @@ namespace skrillex {
         Status queueSong(int song_id);
         Status songFinished();
 
+        Status setActivity(std::string userId, int64_t timestamp);
+
         Status addSong(Song& s);
         Status addArtist(Artist& artist);
         Status addGenre(Genre& genre);
 
-        Status countSong(Song& song, int amount);
-        Status countArtist(Artist& artist, int amount);
-        Status countGenre(Genre& genre, int amount);
-
-        Status voteSong(Song& song, int amount);
-        Status voteArtist(Artist& artist, int amount);
-        Status voteGenre(Genre& genre, int amount);
+        Status voteSong(std::string userId, Song& song, int amount);
+        Status voteArtist(std::string userId, Artist& artist, int amount);
+        Status voteGenre(std::string userId, Genre& genre, int amount);
 
     private:
         DB(std::string path, Options options);
@@ -86,7 +84,7 @@ namespace skrillex {
         std::string db_path_;
         Options     db_options_;
         State       db_state_;
-        int         session_id_;
+        int64_t     session_id_;
 
         std::unique_ptr<internal::Store> store_;
     };

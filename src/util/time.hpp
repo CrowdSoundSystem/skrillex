@@ -5,7 +5,7 @@
 
 namespace skrillex {
 namespace internal {
-    uint64_t timestamp();
+    int64_t timestamp();
 }
 }
 

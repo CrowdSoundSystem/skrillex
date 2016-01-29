@@ -45,21 +45,20 @@ namespace internal {
 
         "CREATE TABLE IF NOT EXISTS SessionHistory ("
         "    SessionID INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "    Date      BIGINT NOT NULL"
+        "    Date      DATETIME NOT NULL"
         ")",
 
         "CREATE TABLE IF NOT EXISTS UserActivity ("
         "    UserID     VARCHAR(255) PRIMARY KEY,"
-        "    LastActive BIGINT NOT NULL"
+        "    LastActive DATETIME NOT NULL"
         ")",
 
         "CREATE TABLE ArtistVotes ("
         "    ArtistID  INT NOT NULL,"
         "    SessionID INT NOT NULL,"
         "    UserID    VARCHAR(255) NOT NULL,"
-        "    Count     INT NOT NULL DEFAULT 0,"
-        "    Votes     INT NOT NULL DEFAULT 0,"
-        "    PRIMARY KEY(ArtistID, SessionID),"
+        "    Vote      INT NOT NULL DEFAULT 0,"
+        "    PRIMARY KEY(ArtistID, SessionID, UserID),"
         "    FOREIGN KEY(ArtistID)  REFERENCES Artists(ArtistID),"
         "    FOREIGN KEY(SessionID) REFERENCES SessionHistory(SessionID),"
         "    FOREIGN KEY(UserID)    REFERENCES UserActivity(UserID)"
@@ -68,9 +67,9 @@ namespace internal {
         "CREATE TABLE GenreVotes ("
         "    GenreID   INT NOT NULL,"
         "    SessionID INT NOT NULL,"
-        "    Count     INT NOT NULL DEFAULT 0,"
-        "    Votes     INT NOT NULL DEFAULT 0,"
-        "    PRIMARY KEY(GenreID, SessionID),"
+        "    UserID    VARCHAR(255) NOT NULL,"
+        "    Vote      INT NOT NULL DEFAULT 0,"
+        "    PRIMARY KEY(GenreID, SessionID, UserID),"
         "    FOREIGN KEY(GenreID)   REFERENCES Genres(GenreID),"
         "    FOREIGN KEY(SessionID) REFERENCES SessionHistory(SessionID),"
         "    FOREIGN KEY(UserID)    REFERENCES UserActivity(UserID)"
@@ -79,9 +78,9 @@ namespace internal {
         "CREATE TABLE SongVotes ("
         "    SongID    INT NOT NULL,"
         "    SessionID INT NOT NULL,"
-        "    Count     INT NOT NULL DEFAULT 0,"
-        "    Votes     INT NOT NULL DEFAULT 0,"
-        "    PRIMARY KEY(SongID, SessionID),"
+        "    UserID    VARCHAR(255) NOT NULL,"
+        "    Vote      INT NOT NULL DEFAULT 0,"
+        "    PRIMARY KEY(SongID, SessionID, UserID),"
         "    FOREIGN KEY(SongID)    REFERENCES Songs(SongID),"
         "    FOREIGN KEY(SessionID) REFERENCES SessionHistory(SessionID),"
         "    FOREIGN KEY(UserID)    REFERENCES UserActivity(UserID)"
@@ -129,6 +128,8 @@ namespace internal {
         }
 
         // Disable sync as it greatly imrpoves performance
+        // Note: This is only acceptable if we are okay with the possibility
+        // of losing data, especially on a crash.
         Status s = disable_sync(db);
         if (s) {
             cout << "WARNING: Could not disable sync: " << s.message() << endl;

@@ -1,6 +1,8 @@
 #ifndef skrillex_store_hpp
 #define skrillex_store_hpp
 
+#include <string>
+
 #include "skrillex/options.hpp"
 #include "skrillex/result_set.hpp"
 #include "skrillex/status.hpp"
@@ -23,22 +25,20 @@ namespace internal {
         virtual Status queueSong(int song_id) = 0;
         virtual Status songFinished() = 0;
 
+        virtual Status setActivity(std::string userId, int64_t timestamp) = 0;
+
         virtual Status addSong(Song& song) = 0;
         virtual Status addArtist(Artist& artist) = 0;
         virtual Status addGenre(Genre& genre) = 0;
 
-        virtual Status countSong(Song& s, int amount, WriteOptions options) = 0;
-        virtual Status countArtist(Artist& a, int amount, WriteOptions options) = 0;
-        virtual Status countGenre(Genre& g, int amount, WriteOptions options) = 0;
-
-        virtual Status voteSong(Song& s, int amount, WriteOptions options) = 0;
-        virtual Status voteArtist(Artist& s, int amount, WriteOptions options) = 0;
-        virtual Status voteGenre(Genre& s, int amount, WriteOptions options) = 0;
+        virtual Status voteSong(std::string userId, Song& s, int amount, WriteOptions options) = 0;
+        virtual Status voteArtist(std::string userId, Artist& s, int amount, WriteOptions options) = 0;
+        virtual Status voteGenre(std::string userId, Genre& s, int amount, WriteOptions options) = 0;
 
         virtual Status createSession() = 0;
-        virtual Status createSession(int& result) = 0;
+        virtual Status createSession(int64_t& result) = 0;
 
-        virtual Status getSession(int& result) = 0;
+        virtual Status getSession(int64_t& result) = 0;
         virtual Status getSessionCount(int& result) = 0;
     };
 }

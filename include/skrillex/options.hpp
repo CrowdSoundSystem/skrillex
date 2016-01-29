@@ -33,11 +33,6 @@ struct Options {
     // Default: true
     bool enable_caching;
 
-    // Disables use of any database backend.
-    //
-    // Default: false
-    bool memory_only;
-
     // Sets the database session. This session will
     // be the ones used by default for ReadOptions
     // and WriteOptions.
@@ -50,7 +45,6 @@ struct Options {
 
     Options();
 
-    static Options InMemoryOptions();
     static Options TestOptions();
 };
 
@@ -74,6 +68,13 @@ struct ReadOptions {
     //
     // Default: Counts
     SortType sort;
+
+    // The amount of time a user can be 'inactive' before
+    // there data is no longer returned. If zero, then a
+    // user can be inactive an infinite amount of time.
+    //
+    // Default: 300 (5 minutes)
+    int inactivity_threshold;
 
     ReadOptions();
 };

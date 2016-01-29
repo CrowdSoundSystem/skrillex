@@ -5,6 +5,9 @@ CMakeCache.txt
 cmake_install.cmake
 Makefile
 
+# Editor related things
+tags
+
 # Compiled Object files
 *.slo
 *.lo

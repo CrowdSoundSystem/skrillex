@@ -9,7 +9,6 @@ TEST(OptionsTest, Options) {
 
     EXPECT_FALSE(o.create_if_missing);
     EXPECT_TRUE(o.enable_caching);
-    EXPECT_FALSE(o.memory_only);
     EXPECT_EQ(0, o.session_id);
 }
 
