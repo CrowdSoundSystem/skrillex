@@ -29,7 +29,7 @@ namespace skrillex {
         db = new DB(path, options);
         db->db_state_ = DB::State::Open;
 
-        db->store_ = make_unique<Sqlite3Store>();
+        db->store_.reset(new Sqlite3Store());
 
         Status s;
         if ((s = db->store_->open(path, options))) {
