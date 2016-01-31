@@ -73,7 +73,7 @@ struct ReadOptions {
     // there data is no longer returned. If zero, then a
     // user can be inactive an infinite amount of time.
     //
-    // Default: 300 (5 minutes)
+    // Default: 300000 (5 minutes)
     int inactivity_threshold;
 
     ReadOptions();

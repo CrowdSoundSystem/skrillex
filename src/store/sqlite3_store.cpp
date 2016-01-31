@@ -40,7 +40,10 @@ namespace internal {
         // Who is the ugliest query, of them all
         string query =
             "SELECT Songs.SongID, Songs.Name, COUNT(SongVotes.SongID) as Count, COALESCE(SUM(SongVotes.Vote), 0) as Votes, Artists.ArtistID, Artists.Name, Genres.GenreID, Genres.Name, SessionID FROM Songs "
-            "LEFT JOIN SongVotes ON Songs.SongID = SongVotes.SongID ";
+            "LEFT JOIN SongVotes ON Songs.SongID = SongVotes.SongID AND SongVotes.UserID IN ("
+            "    SELECT UserID FROM UserActivity"
+            "    WHERE UserActivity.LastActive > ?"
+            ") ";
 
         if (options.session_id != -1) {
             query += "AND SessionID = ? ";
@@ -72,18 +75,31 @@ namespace internal {
             return Status::Error(sqlite3_errmsg(db_));
         }
 
+        if (sqlite3_bind_int64(statement, 1, timestamp() - options.inactivity_threshold)) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+
         if (options.session_id <= 0) {
             options.session_id = session_id_;
         }
 
-        if (sqlite3_bind_int64(statement, 1, options.session_id)) {
+        if (sqlite3_bind_int64(statement, 2, options.session_id)) {
             return Status::Error(sqlite3_errmsg(db_));
         }
 
         int result = 0;
+        bool completed = false;
         while ((result = sqlite3_step(statement)) == SQLITE_ROW) {
             Song s;
             s.id          = sqlite3_column_int(statement, 0);
+
+            // If the returned ID is zero, then there are actually zero results. However,
+            // since we use COUNT(), a row will still be returned, so we must perform this check.
+            if (s.id == 0) {
+                completed = true;
+                break;
+            }
+
             s.name        = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 1)));
             s.count       = sqlite3_column_int(statement, 2);
             s.votes       = sqlite3_column_int(statement, 3);
@@ -100,7 +116,7 @@ namespace internal {
 
         sqlite3_finalize(statement);
 
-        if (result != SQLITE_OK && result != SQLITE_DONE) {
+        if (result != SQLITE_OK && result != SQLITE_DONE && !completed) {
             return Status::Error(sqlite3_errmsg(db_));
         }
 
@@ -115,7 +131,10 @@ namespace internal {
 
         string query =
             "SELECT Artists.ArtistID, Name, COUNT(ArtistVotes.ArtistID) as Count, COALESCE(SUM(ArtistVotes.Vote), 0) as Votes FROM Artists "
-            "LEFT JOIN ArtistVotes on Artists.ArtistID = ArtistVotes.ArtistID ";
+            "LEFT JOIN ArtistVotes on Artists.ArtistID = ArtistVotes.ArtistID AND ArtistVotes.UserID IN ("
+            "    SELECT UserID FROM UserActivity"
+            "    WHERE UserActivity.LastActive > ?"
+            ") ";
 
         if (options.session_id != -1) {
             query += "AND SessionID = ? ";
@@ -127,20 +146,24 @@ namespace internal {
 
         switch (options.sort) {
             case SortType::Counts:
-                query += " ORDER BY Count DESC";
+                query += "ORDER BY Count DESC ";
                 break;
             case SortType::Votes:
-                query += " ORDER BY Votes DESC";
+                query += "ORDER BY Votes DESC ";
                 break;
             default:
                 break;
         }
 
         if (options.result_limit > 0) {
-            query += " LIMIT " + to_string(options.result_limit);
+            query += "LIMIT " + to_string(options.result_limit);
         }
 
         if (sqlite3_prepare_v2(db_, query.c_str(), -1, &statement, 0)) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+
+        if (sqlite3_bind_int64(statement, 1, timestamp() - options.inactivity_threshold)) {
             return Status::Error(sqlite3_errmsg(db_));
         }
 
@@ -148,14 +171,22 @@ namespace internal {
             options.session_id = session_id_;
         }
 
-        if (sqlite3_bind_int64(statement, 1, options.session_id)) {
+        if (sqlite3_bind_int64(statement, 2, options.session_id)) {
             return Status::Error(sqlite3_errmsg(db_));
         }
 
         int result = 0;
+        bool completed = false;
         while ((result = sqlite3_step(statement)) == SQLITE_ROW) {
             Artist a;
             a.id         = sqlite3_column_int(statement, 0);
+
+            // See; getSongs
+            if (a.id == 0) {
+                completed = true;
+                break;
+            }
+
             a.name       = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 1)));
             a.count      = sqlite3_column_int(statement, 2);
             a.votes      = sqlite3_column_int(statement, 3);
@@ -164,7 +195,7 @@ namespace internal {
 
         sqlite3_finalize(statement);
 
-        if (result != SQLITE_OK && result != SQLITE_DONE) {
+        if (result != SQLITE_OK && result != SQLITE_DONE && !completed) {
             return Status::Error(sqlite3_errmsg(db_));
         }
 
@@ -177,7 +208,10 @@ namespace internal {
         sqlite3_stmt* statement = 0;
 
         string query = "SELECT Genres.GenreID, Name, COUNT(GenreVotes.GenreID) as Count, COALESCE(SUM(GenreVotes.Vote), 0) as Votes FROM Genres "
-            "LEFT JOIN GenreVotes on Genres.GenreID = GenreVotes.GenreID ";
+            "LEFT JOIN GenreVotes on Genres.GenreID = GenreVotes.GenreID AND GenreVotes.UserID IN ("
+            "    SELECT UserID FROM UserActivity"
+            "    WHERE UserActivity.LastActive > ?"
+            ") ";
 
         if (options.session_id != -1) {
             query += "AND SessionID = ? ";
@@ -185,24 +219,28 @@ namespace internal {
             query += "AND SessionID != ? ";
         }
 
-        query += "GROUP BY Genres.GenreID";
+        query += "GROUP BY Genres.GenreID ";
 
         switch (options.sort) {
             case SortType::Counts:
-                query += " ORDER BY Count";
+                query += "ORDER BY Count DESC ";
                 break;
             case SortType::Votes:
-                query += " ORDER BY Votes";
+                query += "ORDER BY Votes DESC ";
                 break;
             default:
                 break;
         }
 
         if (options.result_limit > 0) {
-            query += " LIMIT " + to_string(options.result_limit);
+            query += "LIMIT " + to_string(options.result_limit);
         }
 
         if (sqlite3_prepare_v2(db_, query.c_str(), -1, &statement, 0)) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+
+        if (sqlite3_bind_int64(statement, 1, timestamp() - options.inactivity_threshold)) {
             return Status::Error(sqlite3_errmsg(db_));
         }
 
@@ -210,23 +248,31 @@ namespace internal {
             options.session_id = session_id_;
         }
 
-        if (sqlite3_bind_int64(statement, 1, options.session_id)) {
+        if (sqlite3_bind_int64(statement, 2, options.session_id)) {
             return Status::Error(sqlite3_errmsg(db_));
         }
 
         int result = 0;
+        bool completed = false;
         while ((result = sqlite3_step(statement)) == SQLITE_ROW) {
             Genre g;
             g.id    = sqlite3_column_int(statement, 0);
+
+            // See: getSongs
+            if (g.id == 0) {
+                completed = true;
+                break;
+            }
+
             g.name  = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 1)));
-            g.votes = sqlite3_column_int(statement, 2);
-            g.count = sqlite3_column_int(statement, 3);
+            g.count = sqlite3_column_int(statement, 2);
+            g.votes = sqlite3_column_int(statement, 3);
             set_data.push_back(g);
         }
 
         sqlite3_finalize(statement);
 
-        if (result != SQLITE_OK && result != SQLITE_DONE) {
+        if (result != SQLITE_OK && result != SQLITE_DONE && !completed) {
             return Status::Error(sqlite3_errmsg(db_));
         }
 
@@ -409,7 +455,7 @@ namespace internal {
             return Status::Error(sqlite3_errmsg(db_));
         }
 
-        if (sqlite3_bind_int(statement, 2, timestamp)) {
+        if (sqlite3_bind_int64(statement, 2, timestamp)) {
             return Status::Error(sqlite3_errmsg(db_));
         }
 
@@ -447,6 +493,8 @@ namespace internal {
         int r = sqlite3_step(statement);
         sqlite3_finalize(statement);
 
+        song.id = (int) sqlite3_last_insert_rowid(db_);
+
         if (r != SQLITE_OK && r != SQLITE_DONE) {
             return Status::Error(sqlite3_errmsg(db_));
         }
@@ -469,6 +517,8 @@ namespace internal {
         int r = sqlite3_step(statement);
         sqlite3_finalize(statement);
 
+        artist.id = (int) sqlite3_last_insert_rowid(db_);
+
         if (r != SQLITE_OK && r != SQLITE_DONE) {
             return Status::Error(sqlite3_errmsg(db_));
         }
@@ -490,6 +540,8 @@ namespace internal {
 
         int r = sqlite3_step(statement);
         sqlite3_finalize(statement);
+
+        genre.id = (int) sqlite3_last_insert_rowid(db_);
 
         if (r != SQLITE_OK && r != SQLITE_DONE) {
             return Status::Error(sqlite3_errmsg(db_));

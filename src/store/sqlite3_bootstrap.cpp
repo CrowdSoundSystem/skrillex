@@ -17,6 +17,7 @@ namespace internal {
         "DROP TABLE IF EXISTS GenreVotes",
 
         "DROP TABLE IF EXISTS SessionHistory",
+        "DROP TABLE IF EXISTS UserActivity",
 
         "DROP TABLE IF EXISTS Songs",
         "DROP TABLE IF EXISTS Artists",

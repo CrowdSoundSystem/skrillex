@@ -10,6 +10,7 @@
 //
 
 #include <iostream>
+#include <thread>
 #include <gtest/gtest.h>
 
 #include "skrillex/db.hpp"
@@ -51,7 +52,6 @@ TEST(Sqlite3DatabaseTests, Init) {
 }
 
 TEST(Sqlite3DatabaseTests, PopulateEmpty) {
-	return;
     ReadOptions limiter;
 
     DB* raw = 0;
@@ -120,7 +120,7 @@ TEST(Sqlite3DatabaseTests, PopulateEmpty) {
 }
 
 TEST(Sqlite3DatabaseTests, PopulateFull) {
- ReadOptions readOptions;
+    ReadOptions readOptions;
     ReadOptions voteSort;
     voteSort.sort = SortType::Votes;
 
@@ -290,4 +290,95 @@ TEST(Sqlite3DatabaseTests, PopulateFull) {
     s = db->getGenres(oldGenres, voteSort);
     EXPECT_EQ(Status::OK(), s);
     EXPECT_GT(max_votes, oldGenres.begin()->votes);
+}
+
+TEST(Sqlite3DatabaseTests, Activity) {
+    DB* raw = 0;
+    Status s = open(raw, "test.db", Options::TestOptions());
+    ASSERT_EQ(Status::OK(), s);
+
+    shared_ptr<DB> db(raw);
+
+    ResultSet<Genre> genres;
+    EXPECT_EQ(Status::OK(), db->getGenres(genres));
+    EXPECT_EQ(0, genres.size());
+
+    ResultSet<Artist> artists;
+    EXPECT_EQ(Status::OK(), db->getArtists(artists));
+    EXPECT_EQ(0, artists.size());
+
+    ResultSet<Song> songs;
+    EXPECT_EQ(Status::OK(), db->getSongs(songs));
+    EXPECT_EQ(0, songs.size());
+
+    // Insert a song, then have a user vote on it.
+    Genre g;
+    g.name = "g0";
+
+    Artist a;
+    a.name = "a0";
+
+    EXPECT_EQ(Status::OK(), db->addGenre(g));
+    EXPECT_EQ(Status::OK(), db->addArtist(a));
+
+    Song song;
+    song.artist = a;
+    song.genre = g;
+    song.name = "s0";
+
+    EXPECT_EQ(Status::OK(), db->addSong(song));
+
+    for (int i = 0; i < 3; i++) {
+        int vote = (i == 2) ? 0 : 1;
+        EXPECT_EQ(Status::OK(), db->voteGenre("u" + to_string(i), g, vote));
+        EXPECT_EQ(Status::OK(), db->voteArtist("u" + to_string(i), a, vote));
+        EXPECT_EQ(Status::OK(), db->voteSong("u" + to_string(i), song, vote));
+    }
+
+    EXPECT_EQ(Status::OK(), db->getGenres(genres));
+    EXPECT_EQ(1, genres.size());
+    for (auto& g : genres) {
+        EXPECT_EQ(3, g.count);
+        EXPECT_EQ(2, g.votes);
+    }
+
+    EXPECT_EQ(Status::OK(), db->getArtists(artists));
+    EXPECT_EQ(1, artists.size());
+    for (auto& a : artists) {
+        EXPECT_EQ(3, a.count);
+        EXPECT_EQ(2, a.votes);
+    }
+
+    EXPECT_EQ(Status::OK(), db->getSongs(songs));
+    EXPECT_EQ(1, songs.size());
+    for (auto& s : songs) {
+        EXPECT_EQ(3, s.count);
+        EXPECT_EQ(2, s.votes);
+    }
+
+    this_thread::sleep_for(chrono::milliseconds(100));
+
+    ReadOptions options;
+    options.inactivity_threshold = 20;
+
+    EXPECT_EQ(Status::OK(), db->getGenres(genres, options));
+    EXPECT_EQ(1, genres.size());
+    for (auto& g : genres) {
+        EXPECT_EQ(0, g.count);
+        EXPECT_EQ(0, g.votes);
+    }
+
+    EXPECT_EQ(Status::OK(), db->getArtists(artists, options));
+    EXPECT_EQ(1, artists.size());
+    for (auto& a : artists) {
+        EXPECT_EQ(0, a.count);
+        EXPECT_EQ(0, a.votes);
+    }
+
+    EXPECT_EQ(Status::OK(), db->getSongs(songs, options));
+    EXPECT_EQ(1, songs.size());
+    for (auto& s : songs) {
+        EXPECT_EQ(0, s.count);
+        EXPECT_EQ(0, s.votes);
+    }
 }

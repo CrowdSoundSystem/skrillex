@@ -13,7 +13,7 @@ namespace skrillex {
     : session_id(0)
     , result_limit(0)
     , sort(SortType::Counts)
-    , inactivity_threshold(300)
+    , inactivity_threshold(300000)
     {
     }
 

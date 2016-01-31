@@ -5,8 +5,18 @@ namespace skrillex {
         return a.id == b.id;
     }
 
+    std::ostream& operator<<(std::ostream& os, const Artist& artist) {
+        os << "Artist{id=" << artist.id << ", name=" << artist.name << ", count=" << artist.count << ", votes=" << artist.votes << "}";
+        return os;
+    }
+
     bool operator==(const Genre& a, const Genre& b) {
         return a.id == b.id;
+    }
+
+    std::ostream& operator<<(std::ostream& os, const Genre& genre) {
+        os << "Genre{id=" << genre.id << ", name=" << genre.name << ", count=" << genre.count << ", votes=" << genre.votes << "}";
+        return os;
     }
 
     bool operator==(const Song& a, const Song& b) {

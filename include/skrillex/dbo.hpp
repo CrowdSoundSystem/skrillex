@@ -25,6 +25,7 @@ struct Artist : public Countable {
     uint64_t    last_played;
 
     friend bool operator==(const Artist& a, const Artist& b);
+    friend std::ostream& operator<<(std::ostream& os, const Artist& artist);
 };
 
 struct Genre : public Countable {
@@ -34,6 +35,7 @@ struct Genre : public Countable {
     // Unix timestamp
     uint64_t    last_played;
     friend bool operator==(const Genre& a, const Genre& b);
+    friend std::ostream& operator<<(std::ostream& os, const Genre& genre);
 };
 
 struct Song : public Countable {
@@ -49,6 +51,8 @@ struct Song : public Countable {
     friend std::ostream& operator<<(std::ostream& os, const Song& song);
 };
 
+std::ostream& operator<<(std::ostream& os, const Artist& artist);
+std::ostream& operator<<(std::ostream& os, const Genre& genre);
 std::ostream& operator<<(std::ostream& os, const Song& song);
 
 }
