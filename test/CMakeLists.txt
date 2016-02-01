@@ -20,6 +20,7 @@ MESSAGE(STATUS "${all_test_sources}")
 add_executable(skrillex_tests ${all_test_sources})
 
 # Link test executable against gtest and gtest_main
+set_property(TARGET skrillex_tests PROPERTY CXX_STANDARD 11)
 target_link_libraries(skrillex_tests skrillex gtest gtest_main)
 
 install(TARGETS skrillex_tests DESTINATION bin)
