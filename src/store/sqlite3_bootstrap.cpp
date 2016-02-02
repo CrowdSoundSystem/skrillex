@@ -54,7 +54,7 @@ namespace internal {
         "    LastActive DATETIME NOT NULL"
         ")",
 
-        "CREATE TABLE ArtistVotes ("
+        "CREATE TABLE IF NOT EXISTS ArtistVotes ("
         "    ArtistID  INT NOT NULL,"
         "    SessionID INT NOT NULL,"
         "    UserID    VARCHAR(255) NOT NULL,"
@@ -65,7 +65,7 @@ namespace internal {
         "    FOREIGN KEY(UserID)    REFERENCES UserActivity(UserID)"
         ")",
 
-        "CREATE TABLE GenreVotes ("
+        "CREATE TABLE IF NOT EXISTS GenreVotes ("
         "    GenreID   INT NOT NULL,"
         "    SessionID INT NOT NULL,"
         "    UserID    VARCHAR(255) NOT NULL,"
@@ -76,7 +76,7 @@ namespace internal {
         "    FOREIGN KEY(UserID)    REFERENCES UserActivity(UserID)"
         ")",
 
-        "CREATE TABLE SongVotes ("
+        "CREATE TABLE IF NOT EXISTS SongVotes ("
         "    SongID    INT NOT NULL,"
         "    SessionID INT NOT NULL,"
         "    UserID    VARCHAR(255) NOT NULL,"
@@ -87,7 +87,7 @@ namespace internal {
         "    FOREIGN KEY(UserID)    REFERENCES UserActivity(UserID)"
         ")",
 
-        "CREATE TABLE PlayHistory ("
+        "CREATE TABLE IF NOT EXISTS PlayHistory ("
         "    SongID    INT NOT NULL,"
         "    SessionID INT NOT NULL,"
         "    Date      BIGINT NOT NULL,"
