@@ -31,6 +31,10 @@ namespace internal {
         virtual Status addArtist(Artist& artist) = 0;
         virtual Status addGenre(Genre& genre) = 0;
 
+        virtual Status getSong(Song& song, std::string normalizedName);
+        virtual Status getArtist(Song& song, std::string normalizedName);
+        virtual Status getGenre(Song& song, std::string normalizedName);
+
         virtual Status voteSong(std::string userId, Song& s, int amount, WriteOptions options) = 0;
         virtual Status voteArtist(std::string userId, Artist& s, int amount, WriteOptions options) = 0;
         virtual Status voteGenre(std::string userId, Genre& s, int amount, WriteOptions options) = 0;
