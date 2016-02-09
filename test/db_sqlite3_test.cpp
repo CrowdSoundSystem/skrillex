@@ -405,6 +405,7 @@ TEST(Sqlite3DatabaseTests, Queue) {
     song.genre = g;
 
     EXPECT_EQ(Status::OK(), db->addSong(song));
+    EXPECT_EQ(0, song.last_played);
     EXPECT_EQ(Status::OK(), db->queueSong(song.id));
 
     ResultSet<Song> queue;
@@ -414,6 +415,23 @@ TEST(Sqlite3DatabaseTests, Queue) {
     auto r = queue.begin();
     EXPECT_EQ(song, *r);
 
-    EXPECT_EQ(Status::OK(), db->songFinished());
-    EXPECT_EQ(Status::OK(), db->getQueue(queue));
+    // Make sure last played gets update properly
+    uint64_t last_played = 0;
+    for (int i = 0; i < 2; i++) {
+        EXPECT_EQ(Status::OK(), db->songFinished());
+        EXPECT_EQ(Status::OK(), db->getQueue(queue));
+        EXPECT_EQ(0, queue.size());
+
+        ResultSet<Song> songs;
+        EXPECT_EQ(Status::OK(), db->getSongs(songs));
+        EXPECT_EQ(1, songs.size());
+
+        r = songs.begin();
+        EXPECT_LT(0, r->last_played);
+        EXPECT_LT(last_played, r->last_played);
+        last_played = r->last_played;
+
+        EXPECT_EQ(Status::OK(), db->queueSong(song.id));
+        this_thread::sleep_for(chrono::milliseconds(100));
+    }
 }

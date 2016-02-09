@@ -90,7 +90,7 @@ namespace internal {
         "CREATE TABLE IF NOT EXISTS PlayHistory ("
         "    SongID    INT NOT NULL,"
         "    SessionID INT NOT NULL,"
-        "    Date      BIGINT NOT NULL,"
+        "    Timestamp BIGINT NOT NULL,"
         "    PRIMARY KEY(SongID, SessionID)"
         ")"
     };

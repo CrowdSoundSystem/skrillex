@@ -39,21 +39,23 @@ namespace internal {
         // Mirror, mirror, on the wall
         // Who is the ugliest query, of them all
         string query =
-            "SELECT Songs.SongID, Songs.Name, COUNT(SongVotes.SongID) as Count, COALESCE(SUM(SongVotes.Vote), 0) as Votes, Artists.ArtistID, Artists.Name, Genres.GenreID, Genres.Name, SessionID FROM Songs "
+            "SELECT Songs.SongID, Songs.Name, COUNT(SongVotes.SongID) as Count, COALESCE(SUM(SongVotes.Vote), 0) as Votes, PlayHistory.Timestamp, Artists.ArtistID, Artists.Name, Genres.GenreID, Genres.Name, SongVotes.SessionID FROM Songs "
             "LEFT JOIN SongVotes ON Songs.SongID = SongVotes.SongID AND SongVotes.UserID IN ("
             "    SELECT UserID FROM UserActivity"
             "    WHERE UserActivity.LastActive > ?"
             ") ";
 
+        // TODO: Proper semantics for last played.
         if (options.session_id != -1) {
-            query += "AND SessionID = ? ";
+            query += "AND SongVotes.SessionID = ? ";
         } else {
-            query += "AND SessionID != ? ";
+            query += "AND SongVotes.SessionID != ? ";
         }
 
         query +=
-            "LEFT JOIN Artists   ON Songs.ArtistID = Artists.ArtistID "
-            "LEFT JOIN Genres    ON Songs.GenreID  = Genres.GenreID "
+            "LEFT JOIN Artists     ON Songs.ArtistID = Artists.ArtistID "
+            "LEFT JOIN Genres      ON Songs.GenreID  = Genres.GenreID "
+            "LEFT JOIN PlayHistory ON Songs.SongID   = PlayHistory.SongID AND PlayHistory.SessionID = ? "
             "GROUP BY Songs.SongID ";
 
         switch (options.sort) {
@@ -87,6 +89,10 @@ namespace internal {
             return Status::Error(sqlite3_errmsg(db_));
         }
 
+        if (sqlite3_bind_int64(statement, 3, options.session_id)) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+
         int result = 0;
         bool completed = false;
         while ((result = sqlite3_step(statement)) == SQLITE_ROW) {
@@ -103,13 +109,13 @@ namespace internal {
             s.name        = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 1)));
             s.count       = sqlite3_column_int(statement, 2);
             s.votes       = sqlite3_column_int(statement, 3);
-            s.last_played = 0;
+            s.last_played = sqlite3_column_int64(statement, 4);
 
-            s.artist.id   = sqlite3_column_int(statement, 4);
-            s.artist.name = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 5)));
+            s.artist.id   = sqlite3_column_int(statement, 5);
+            s.artist.name = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 6)));
 
-            s.genre.id    = sqlite3_column_int(statement, 6);
-            s.genre.name  = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 7)));
+            s.genre.id    = sqlite3_column_int(statement, 7);
+            s.genre.name  = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 8)));
 
             set_data.push_back(s);
         }
@@ -290,7 +296,7 @@ namespace internal {
             "LEFT JOIN Artists ON Songs.ArtistID = Artists.ArtistID "
             "LEFT JOIN Genres  ON Songs.GenreID  = Genres.GenreID "
             "JOIN PlayHistory  ON Songs.SongID   = PlayHistory.SongID "
-            "ORDER BY DESC Date";
+            "ORDER BY DESC Timestamp";
 
         if (options.result_limit > 0) {
             query += " LIMIT " + to_string(options.result_limit);
@@ -388,7 +394,7 @@ namespace internal {
 
         {
             lock_guard<mutex> lock(queue_lock_);
-            Song song = song_queue_.front();
+            song = song_queue_.front();
             song_queue_.erase(song_queue_.begin());
         }
 
@@ -403,9 +409,39 @@ namespace internal {
         // of popping off the queue, the data may be in an
         // invalid state, so we must update the item before
         // saving!
+        //
+        // After a few months (coming back fresh), while the above
+        // statement is true in the sense of stale data, we only
+        // need to update timestamp, which is trivial in SQL, so
+        // no need to update. My guess is that comment was written
+        // from the InMemory era.
+        sqlite3_stmt* statement = 0;
 
-        // TODO: Read from database
-        // TODO: Store in database
+        string query = "REPLACE INTO `PlayHistory` (`SongID`, `SessionID`, `Timestamp`) VALUES (?, ?, ?)";
+
+        if (sqlite3_prepare_v2(db_, query.c_str(), -1, &statement, 0)) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+
+        if (sqlite3_bind_int(statement, 1, song.id)) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+
+        if (sqlite3_bind_int(statement, 2, session_id_)) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+
+        if (sqlite3_bind_int64(statement, 3, song.last_played)) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+
+        int r = sqlite3_step(statement);
+        sqlite3_finalize(statement);
+
+        if (r != SQLITE_OK && r != SQLITE_DONE) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+
 		return Status::OK();
 	}
 
@@ -491,6 +527,7 @@ namespace internal {
         sqlite3_finalize(statement);
 
         song.id = (int) sqlite3_last_insert_rowid(db_);
+        song.last_played = 0;
 
         if (r != SQLITE_OK && r != SQLITE_DONE) {
             return Status::Error(sqlite3_errmsg(db_));
