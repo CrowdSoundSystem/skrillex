@@ -342,8 +342,7 @@ namespace internal {
         sqlite3_stmt* statement = 0;
 
         string query =
-            "SELECT Songs.SongID, Songs.Name, Count, Votes, Artists.ArtistID, Artists.Name, Genres.GenreID, Genres.Name FROM Songs "
-            "LEFT JOIN SongVotes ON Songs.SongID   = SongVotes.SongID "
+            "SELECT Songs.SongID, Songs.Name, Artists.ArtistID, Artists.Name, Genres.GenreID, Genres.Name FROM Songs "
             "LEFT JOIN Artists   ON Songs.ArtistID = Artists.ArtistID "
             "LEFT JOIN Genres    ON Songs.GenreID  = Genres.GenreID "
             "WHERE Songs.SongID = " + to_string(songId);
@@ -356,15 +355,13 @@ namespace internal {
         while ((result = sqlite3_step(statement)) == SQLITE_ROW) {
             s.id          = sqlite3_column_int(statement, 0);
             s.name        = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 1)));
-            s.count       = sqlite3_column_int(statement, 2);
-            s.votes       = sqlite3_column_int(statement, 3);
             s.last_played = 0;
 
-            s.artist.id   = sqlite3_column_int(statement, 4);
-            s.artist.name = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 5)));
+            s.artist.id   = sqlite3_column_int(statement, 2);
+            s.artist.name = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 3)));
 
-            s.genre.id    = sqlite3_column_int(statement, 6);
-            s.genre.name  = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 7)));
+            s.genre.id    = sqlite3_column_int(statement, 4);
+            s.genre.name  = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 5)));
         }
 
         sqlite3_finalize(statement);

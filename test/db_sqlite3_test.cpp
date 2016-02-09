@@ -382,3 +382,38 @@ TEST(Sqlite3DatabaseTests, Activity) {
         EXPECT_EQ(0, s.votes);
     }
 }
+
+TEST(Sqlite3DatabaseTests, Queue) {
+    DB* raw = 0;
+    Status s = open(raw, "test.db", Options::TestOptions());
+    ASSERT_EQ(Status::OK(), s);
+
+    shared_ptr<DB> db(raw);
+
+    Genre g;
+    g.name = "genre";
+
+    Artist a;
+    a.name = "artist";
+
+    EXPECT_EQ(Status::OK(), db->addGenre(g));
+    EXPECT_EQ(Status::OK(), db->addArtist(a));
+
+    Song song;
+    song.name = "song";
+    song.artist = a;
+    song.genre = g;
+
+    EXPECT_EQ(Status::OK(), db->addSong(song));
+    EXPECT_EQ(Status::OK(), db->queueSong(song.id));
+
+    ResultSet<Song> queue;
+    EXPECT_EQ(Status::OK(), db->getQueue(queue));
+    EXPECT_EQ(1, queue.size());
+
+    auto r = queue.begin();
+    EXPECT_EQ(song, *r);
+
+    EXPECT_EQ(Status::OK(), db->songFinished());
+    EXPECT_EQ(Status::OK(), db->getQueue(queue));
+}
