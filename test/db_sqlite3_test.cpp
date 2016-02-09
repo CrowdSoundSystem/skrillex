@@ -382,3 +382,60 @@ TEST(Sqlite3DatabaseTests, Activity) {
         EXPECT_EQ(0, s.votes);
     }
 }
+
+TEST(Sqlite3DatabaseTests, Normalized) {
+    DB* raw = 0;
+    Status s = open(raw, "test.db", Options::TestOptions());
+    ASSERT_EQ(Status::OK(), s);
+
+    Store* store = StoreMutator::getStore(raw);
+
+    // We merely want to test whether or not IO for normalized
+    // lookups work. We don't care about how normalization works.
+    // As a result, we'll just make up our own normalization for
+    // test purposes.
+    Genre g;
+    g.name = "Genre";
+
+    Artist a;
+    a.name = "Artist";
+
+    EXPECT_EQ(Status::OK(), store->addGenre(g));
+    EXPECT_EQ(Status::OK(), store->addArtist(a));
+
+    Song song;
+    song.name = "Song";
+    song.artist.id = a.id;
+    song.genre.id = g.id;
+
+    EXPECT_EQ(Status::OK(), store->addSong(song));
+
+    EXPECT_EQ(Status::OK(), store->insertNormalized("genre", 0, 0, g.id));
+    EXPECT_EQ(Status::OK(), store->insertNormalized("artist", 0, a.id, 0));
+    EXPECT_EQ(Status::OK(), store->insertNormalized("song", song.id, 0, 0));
+    EXPECT_EQ(Status::OK(), store->insertNormalized("complete", song.id, song.artist.id, song.genre.id));
+
+    Song result;
+    EXPECT_EQ(Status::OK(), store->getNormalized(result, "genre"));
+    EXPECT_EQ(0, result.id);
+    EXPECT_EQ(0, result.artist.id);
+    EXPECT_EQ(g.id, result.genre.id);
+
+    EXPECT_EQ(Status::OK(), store->getNormalized(result, "artist"));
+    EXPECT_EQ(0, result.id);
+    EXPECT_EQ(a.id, result.artist.id);
+    EXPECT_EQ(0, result.genre.id);
+
+    EXPECT_EQ(Status::OK(), store->getNormalized(result, "song"));
+    EXPECT_EQ(song.id, result.id);
+    EXPECT_EQ(0, result.artist.id);
+    EXPECT_EQ(0, result.genre.id);
+
+    EXPECT_EQ(Status::OK(), store->getNormalized(result, "complete"));
+    EXPECT_EQ(song.id, result.id);
+    EXPECT_EQ(song.name, result.name);
+    EXPECT_EQ(a.id, result.artist.id);
+    EXPECT_EQ(a.name, result.artist.name);
+    EXPECT_EQ(g.id, result.genre.id);
+    EXPECT_EQ(g.name, result.genre.name);
+}

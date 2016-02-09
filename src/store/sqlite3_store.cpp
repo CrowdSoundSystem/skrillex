@@ -3,6 +3,7 @@
 #include "skrillex/result_set.hpp"
 #include "sqlite3/sqlite3.h"
 #include "store/sqlite3_store.hpp"
+#include "parser/transforms.hpp"
 #include "util/time.hpp"
 #include "mutator.hpp"
 
@@ -406,6 +407,12 @@ namespace internal {
         // of popping off the queue, the data may be in an
         // invalid state, so we must update the item before
         // saving!
+        //
+        // After a few months (coming back fresh), while the above
+        // statement is true in the sense of stale data, we only
+        // need to update timestamp, which is trivial in SQL, so
+        // no need to update. My guess is that comment was written
+        // from the InMemory era.
 
         // TODO: Read from database
         // TODO: Store in database
@@ -499,7 +506,7 @@ namespace internal {
             return Status::Error(sqlite3_errmsg(db_));
         }
 
-		return Status::OK();
+        return Status::OK();
 	}
     Status Sqlite3Store::addArtist(Artist& artist) {
         sqlite3_stmt* statement = 0;
@@ -549,6 +556,85 @@ namespace internal {
 
 		return Status::OK();
 	}
+
+    Status Sqlite3Store::insertNormalized(string normalized, int songID, int artistID, int genreID) {
+        sqlite3_stmt* statement = 0;
+
+        string query = "INSERT INTO `Normalized` (`Normalized`, `SongID`, `ArtistID`, `GenreID`) VALUES (?, ?, ?, ?)";
+
+        if (sqlite3_prepare_v2(db_, query.c_str(), -1, &statement, 0)) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+
+        if (sqlite3_bind_text(statement, 1, normalized.c_str(), normalized.size(), SQLITE_STATIC)) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+
+        if (sqlite3_bind_int(statement, 2, songID)) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+
+        if (sqlite3_bind_int(statement, 3, artistID)) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+        if (sqlite3_bind_int(statement, 4, genreID)) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+
+        int r = sqlite3_step(statement);
+        sqlite3_finalize(statement);
+
+        if (r != SQLITE_OK && r != SQLITE_DONE) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+
+        return Status::OK();
+    }
+
+    Status Sqlite3Store::getNormalized(Song& song, string normalized) {
+        sqlite3_stmt* statement = 0;
+
+        string query =
+            "SELECT Normalized.SongID, Songs.Name, Normalized.ArtistID, Artists.Name, Normalized.GenreID, Genres.Name FROM Normalized "
+            "LEFT JOIN Songs   ON Normalized.SongID == Songs.SongID "
+            "LEFT JOIN Artists ON Normalized.ArtistID == Artists.ArtistID "
+            "LEFT JOIN Genres  ON Normalized.GenreID == Genres.GenreID "
+            "WHERE Normalized.Normalized = ?";
+
+        if (sqlite3_prepare_v2(db_, query.c_str(), -1, &statement, 0)) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+
+        if (sqlite3_bind_text(statement, 1, normalized.c_str(), normalized.size(), SQLITE_STATIC)) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+
+        int result = 0;
+        while ((result = sqlite3_step(statement)) == SQLITE_ROW) {
+            song.id = sqlite3_column_int(statement, 0);
+            if (song.id != 0) {
+                song.name        = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 1)));
+            }
+
+            song.artist.id = sqlite3_column_int(statement, 2);
+            if (song.artist.id != 0) {
+                song.artist.name = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 3)));
+            }
+
+            song.genre.id = sqlite3_column_int(statement, 4);
+            if (song.genre.id != 0) {
+                song.genre.name  = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 5)));
+            }
+        }
+
+        sqlite3_finalize(statement);
+
+        if (result != SQLITE_OK && result != SQLITE_DONE) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+
+        return Status::OK();
+    }
 
     Status Sqlite3Store::voteSong(std::string userId, Song& song, int amount, WriteOptions options) {
         sqlite3_stmt* statement = 0;

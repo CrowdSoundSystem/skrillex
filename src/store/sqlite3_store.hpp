@@ -43,6 +43,9 @@ namespace internal {
         Status addArtist(Artist& artist);
         Status addGenre(Genre& genre);
 
+        Status insertNormalized(std::string normalized, int songID, int artistID, int genreID);
+        Status getNormalized(Song& song, std::string normalizedName);
+
         Status voteSong(std::string userId, Song& song, int amount, WriteOptions options);
         Status voteArtist(std::string userId, Artist& artist, int amount, WriteOptions options);
         Status voteGenre(std::string userId, Genre& genre, int amount, WriteOptions options);
