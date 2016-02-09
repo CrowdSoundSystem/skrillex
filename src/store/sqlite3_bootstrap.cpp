@@ -50,7 +50,7 @@ namespace internal {
         ")",
 
         "CREATE TABLE IF NOT EXISTS UserActivity ("
-        "    UserID     VARCHAR(255) PRIMARY KEY,"
+        "    UserID     VARCHAR(255) NOT NULL PRIMARY KEY,"
         "    LastActive DATETIME NOT NULL"
         ")",
 
