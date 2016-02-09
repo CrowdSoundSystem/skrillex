@@ -19,6 +19,8 @@ namespace internal {
         "DROP TABLE IF EXISTS SessionHistory",
         "DROP TABLE IF EXISTS UserActivity",
 
+        "DROP TABLE IF EXISTS Normalized",
+
         "DROP TABLE IF EXISTS Songs",
         "DROP TABLE IF EXISTS Artists",
         "DROP TABLE IF EXISTS Genres"
@@ -42,6 +44,17 @@ namespace internal {
         "    Name     VARCHAR(255) NOT NULL,"
         "    FOREIGN KEY(ArtistID) REFERENCES Artists(ArtistID),"
         "    FOREIGN KEY(GenreID)  REFERENCES Genres(GenreID)"
+        ")",
+
+        "CREATE TABLE IF NOT EXISTS Normalized ("
+        "    Normalized VARCHAR(255) NOT NULL,"
+        "    SongID     INT,"
+        "    ArtistID   INT,"
+        "    GenreID    INT,"
+        "    PRIMARY KEY(Normalized),"
+        "    FOREIGN KEY(SongID)    REFERENCES Songs(SongID),"
+        "    FOREIGN KEY(ArtistID)  REFERENCES Artists(ArtistID),"
+        "    FOREIGN KEY(GenreID)   REFERENCES Genres(GenreID)"
         ")",
 
         "CREATE TABLE IF NOT EXISTS SessionHistory ("
