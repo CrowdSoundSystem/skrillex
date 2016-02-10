@@ -614,10 +614,6 @@ namespace internal {
             return Status::Error(sqlite3_errmsg(db_));
         }
 
-        if (!count) {
-            return Status::NotFound("Could not find normalized entry");
-        }
-
         return Status::OK();
     }
 
@@ -667,6 +663,10 @@ namespace internal {
 
         if (result != SQLITE_OK && result != SQLITE_DONE) {
             return Status::Error(sqlite3_errmsg(db_));
+        }
+
+        if (!count) {
+            return Status::NotFound("Could not find normalized entry");
         }
 
         return Status::OK();
