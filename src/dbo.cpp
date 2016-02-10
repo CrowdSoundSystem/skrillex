@@ -1,6 +1,11 @@
 #include "skrillex/dbo.hpp"
 
 namespace skrillex {
+    Countable::Countable() : count(0), votes(0) {}
+    Artist::Artist() : id(0), name(""), last_played(0) {}
+    Genre::Genre() : id(0), name(""), last_played(0) {}
+    Song::Song() : id(0), name(""), last_played(0) {}
+
     bool operator==(const Artist& a, const Artist& b) {
         return a.id == b.id;
     }

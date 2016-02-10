@@ -3,7 +3,6 @@
 #include "skrillex/result_set.hpp"
 #include "sqlite3/sqlite3.h"
 #include "store/sqlite3_store.hpp"
-#include "parser/transforms.hpp"
 #include "util/time.hpp"
 #include "mutator.hpp"
 
@@ -560,7 +559,7 @@ namespace internal {
     Status Sqlite3Store::insertNormalized(string normalized, int songID, int artistID, int genreID) {
         sqlite3_stmt* statement = 0;
 
-        string query = "INSERT INTO `Normalized` (`Normalized`, `SongID`, `ArtistID`, `GenreID`) VALUES (?, ?, ?, ?)";
+        string query = "REPLACE INTO `Normalized` (`Normalized`, `SongID`, `ArtistID`, `GenreID`) VALUES (?, ?, ?, ?)";
 
         if (sqlite3_prepare_v2(db_, query.c_str(), -1, &statement, 0)) {
             return Status::Error(sqlite3_errmsg(db_));
@@ -609,21 +608,27 @@ namespace internal {
             return Status::Error(sqlite3_errmsg(db_));
         }
 
+        int id = 0;
+        int count = 0;
         int result = 0;
         while ((result = sqlite3_step(statement)) == SQLITE_ROW) {
-            song.id = sqlite3_column_int(statement, 0);
-            if (song.id != 0) {
-                song.name        = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 1)));
+            count++;
+            id = sqlite3_column_int(statement, 0);
+            if (id != 0) {
+                song.id   = id;
+                song.name = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 1)));
             }
 
-            song.artist.id = sqlite3_column_int(statement, 2);
-            if (song.artist.id != 0) {
+            id = sqlite3_column_int(statement, 2);
+            if (id != 0) {
+                song.artist.id   = id;
                 song.artist.name = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 3)));
             }
 
-            song.genre.id = sqlite3_column_int(statement, 4);
-            if (song.genre.id != 0) {
-                song.genre.name  = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 5)));
+            id = sqlite3_column_int(statement, 4);
+            if (id != 0) {
+                song.genre.id   = id;
+                song.genre.name = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 5)));
             }
         }
 
@@ -631,6 +636,10 @@ namespace internal {
 
         if (result != SQLITE_OK && result != SQLITE_DONE) {
             return Status::Error(sqlite3_errmsg(db_));
+        }
+
+        if (!count) {
+            return Status::NotFound("Could not find normalized entry");
         }
 
         return Status::OK();
