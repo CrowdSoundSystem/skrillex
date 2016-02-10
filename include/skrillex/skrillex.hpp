@@ -10,6 +10,7 @@
 
 #include "skrillex/db.hpp"
 #include "skrillex/dbo.hpp"
+#include "skrillex/mapper.hpp"
 #include "skrillex/options.hpp"
 #include "skrillex/result_set.hpp"
 #include "skrillex/status.hpp"
