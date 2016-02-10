@@ -11,4 +11,5 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 include_directories(include)
 
 add_subdirectory(src)
+add_subdirectory(bench)
 add_subdirectory(test)

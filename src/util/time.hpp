@@ -6,6 +6,7 @@
 namespace skrillex {
 namespace internal {
     int64_t timestamp();
+    std::chrono::time_point<std::chrono::high_resolution_clock> now();
 }
 }
 
