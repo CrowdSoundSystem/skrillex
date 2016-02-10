@@ -32,7 +32,7 @@ namespace skrillex {
         class StoreMutator;
     }
 
-    class Parser;
+    class Mapper;
 
     class DB;
     Status open(DB*& db, std::string path, Options options);
@@ -77,7 +77,7 @@ namespace skrillex {
 
         friend Status open(DB*& db, std::string path, Options options);
         friend class internal::StoreMutator;
-        friend class Parser;
+        friend class Mapper;
     private:
         enum class State {
             Closed,

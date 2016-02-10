@@ -474,16 +474,19 @@ TEST(Sqlite3DatabaseTests, Normalized) {
     EXPECT_EQ(0, result.artist.id);
     EXPECT_EQ(g.id, result.genre.id);
 
+    result = Song();
     EXPECT_EQ(Status::OK(), store->getNormalized(result, "artist"));
     EXPECT_EQ(0, result.id);
     EXPECT_EQ(a.id, result.artist.id);
     EXPECT_EQ(0, result.genre.id);
 
+    result = Song();
     EXPECT_EQ(Status::OK(), store->getNormalized(result, "song"));
     EXPECT_EQ(song.id, result.id);
     EXPECT_EQ(0, result.artist.id);
     EXPECT_EQ(0, result.genre.id);
 
+    result = Song();
     EXPECT_EQ(Status::OK(), store->getNormalized(result, "complete"));
     EXPECT_EQ(song.id, result.id);
     EXPECT_EQ(song.name, result.name);

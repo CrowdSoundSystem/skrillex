@@ -13,11 +13,15 @@
 namespace skrillex {
 
 struct Countable {
+    Countable();
+
     int count;
     int votes;
 };
 
 struct Artist : public Countable {
+    Artist();
+
     int         id;
     std::string name;
 
@@ -29,6 +33,8 @@ struct Artist : public Countable {
 };
 
 struct Genre : public Countable {
+    Genre();
+
     int         id;
     std::string name;
 
@@ -39,6 +45,8 @@ struct Genre : public Countable {
 };
 
 struct Song : public Countable {
+    Song();
+
     int         id;
     Artist      artist;
     Genre       genre;
