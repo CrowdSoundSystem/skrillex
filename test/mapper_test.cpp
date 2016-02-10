@@ -76,4 +76,25 @@ TEST(MapperTests, Mapper) {
     EXPECT_EQ(1, song.genre.id);
     EXPECT_EQ(1, song.id);
     EXPECT_EQ("Gay Fish", song.name);
+
+    // A 'dirty' entry should reap full benefit.
+    song = Song();
+    EXPECT_EQ(Status::OK(), mapper.map(song, "Kanye - Gay Fish",  "", ""));
+    EXPECT_EQ(1, song.artist.id);
+    EXPECT_EQ(1, song.genre.id);
+    EXPECT_EQ(1, song.id);
+    EXPECT_EQ("Gay Fish", song.name);
+
+    // And we should be able to perform a lookup
+    song = Song();
+    EXPECT_EQ(Status::OK(), mapper.lookup(song, "Kanye - Gay Fish",  ""));
+    EXPECT_EQ(1, song.artist.id);
+    EXPECT_EQ(1, song.genre.id);
+    EXPECT_EQ(1, song.id);
+    EXPECT_EQ("Gay Fish", song.name);
+
+    // But fail for other cases
+    song = Song();
+    EXPECT_TRUE(mapper.lookup(song, "", "Kanye").error());
+    EXPECT_TRUE(mapper.lookup(song, "Romeo", "Taylor Fish").notFound());
 }

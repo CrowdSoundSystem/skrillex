@@ -27,6 +27,7 @@ namespace skrillex {
         ~Mapper();
 
         Status map(Song& result, std::string song, std::string artist, std::string genre);
+        Status lookup(Song& result, std::string song, std::string artist);
     };
 }
 

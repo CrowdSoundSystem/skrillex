@@ -129,4 +129,16 @@ namespace skrillex {
 
         return Status::OK();
     }
+
+    Status Mapper::lookup(Song& result, std::string songName, std::string artistName) {
+        trim(songName);
+        trim(artistName);
+
+        if (songName == "") {
+            return Status::Error("Invalid Operation: Must speciy song name when performing lookup");
+        }
+
+        string nSong = combine(songName, artistName);
+        return db_->store_->getNormalized(result, nSong);
+    }
 }
