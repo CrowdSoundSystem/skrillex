@@ -112,10 +112,14 @@ namespace internal {
             s.last_played = sqlite3_column_int64(statement, 4);
 
             s.artist.id   = sqlite3_column_int(statement, 5);
-            s.artist.name = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 6)));
+            if (s.artist.id > 0) {
+                s.artist.name = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 6)));
+            }
 
             s.genre.id    = sqlite3_column_int(statement, 7);
-            s.genre.name  = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 8)));
+            if (s.genre.id > 0) {
+                s.genre.name  = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 8)));
+            }
 
             set_data.push_back(s);
         }
@@ -314,10 +318,14 @@ namespace internal {
             s.last_played = sqlite3_column_int64(statement, 4);
 
             s.artist.id   = sqlite3_column_int(statement, 5);
-            s.artist.name = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 6)));
+            if (s.artist.id > 0) {
+                s.artist.name = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 6)));
+            }
 
             s.genre.id    = sqlite3_column_int(statement, 7);
-            s.genre.name  = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 8)));
+            if (s.genre.id > 0) {
+                s.genre.name  = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 8)));
+            }
 
             set_data.push_back(s);
         }
@@ -364,10 +372,14 @@ namespace internal {
             s.last_played = 0;
 
             s.artist.id   = sqlite3_column_int(statement, 2);
-            s.artist.name = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 3)));
+            if (s.artist.id > 0) {
+                s.artist.name = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 3)));
+            }
 
             s.genre.id    = sqlite3_column_int(statement, 4);
-            s.genre.name  = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 5)));
+            if (s.genre.id > 0) {
+                s.genre.name  = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 5)));
+            }
         }
 
         sqlite3_finalize(statement);
