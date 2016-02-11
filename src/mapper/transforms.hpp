@@ -7,7 +7,6 @@ namespace skrillex {
 namespace internal {
     enum FieldType {
         None,
-        SongField,
         ArtistField,
         GenreField
     };

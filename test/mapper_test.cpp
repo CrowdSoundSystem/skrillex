@@ -12,8 +12,8 @@ using namespace skrillex::internal;
 TEST(MapperTests, Transforms) {
     EXPECT_EQ("Gsupercoolg3nre", normalize(FieldType::GenreField, "SuPer-cOol    g3nre"));
     EXPECT_EQ("Asupercoolarteest3", normalize(FieldType::ArtistField, "SuPer-cOol    arteest3"));
-    EXPECT_EQ("supercools0ng", normalize(FieldType::SongField, "SuPer-cOol    s0ng"));
-    EXPECT_EQ("k4ynegayfish", combine("gayFISH", "K4yne"));
+    EXPECT_EQ("supercools0ng", normalize(FieldType::None, "SuPer-cOol    s0ng"));
+    EXPECT_EQ("Sk4ynegayfish", combine("gayFISH", "K4yne"));
 }
 
 TEST(MapperTests, Mapper) {

@@ -19,14 +19,13 @@ namespace internal {
         switch (type) {
             case GenreField:  return "G" + value;
             case ArtistField: return "A" + value;
-            case SongField:
             case None:
                 return value;
         }
     }
 
     string combine(string song, string artist) {
-        return normalize(FieldType::None, artist) + normalize(FieldType::SongField, song);
+        return "S" + normalize(FieldType::None, artist) + normalize(FieldType::None, song);
     }
 }
 }
