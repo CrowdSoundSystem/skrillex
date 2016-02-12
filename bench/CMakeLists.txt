@@ -13,3 +13,8 @@ add_executable(mapper_bench "mapper_bench.cpp")
 set_property(TARGET mapper_bench PROPERTY CXX_STANDARD 11)
 target_link_libraries(mapper_bench skrillex ${CMAKE_THREAD_LIBS_INIT})
 install(TARGETS mapper_bench DESTINATION bin)
+
+add_executable(db_bench "db_bench.cpp")
+set_property(TARGET db_bench PROPERTY CXX_STANDARD 11)
+target_link_libraries(db_bench skrillex ${CMAKE_THREAD_LIBS_INIT})
+install(TARGETS db_bench DESTINATION bin)

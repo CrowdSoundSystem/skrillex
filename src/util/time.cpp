@@ -9,7 +9,7 @@ namespace internal {
     }
 
     chrono::time_point<std::chrono::high_resolution_clock> now() {
-        chrono::high_resolution_clock::now();
+        return chrono::high_resolution_clock::now();
     }
 }
 }
