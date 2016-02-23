@@ -60,7 +60,10 @@ namespace skrillex {
         Status queueSong(int song_id);
         Status songFinished();
 
-        Status setActivity(std::string userId, int64_t timestamp);
+        Status getBuffer(ResultSet<Song>& buffer);
+        Status bufferSong(int song_id);
+        
+	Status setActivity(std::string userId, int64_t timestamp);
 
         Status addSong(Song& s);
         Status addArtist(Artist& artist);

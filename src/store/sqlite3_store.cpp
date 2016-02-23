@@ -352,7 +352,8 @@ namespace internal {
 		return Status::OK();
 	}
     Status Sqlite3Store::queueSong(int songId) {
-        // Get song from the database, and insert into queue.
+        /*
+		// Get song from the database, and insert into queue.
         sqlite3_stmt* statement = 0;
 
         string query =
@@ -387,11 +388,13 @@ namespace internal {
         if (result != SQLITE_OK && result != SQLITE_DONE) {
             return Status::Error(sqlite3_errmsg(db_));
         }
-
-        if (s.id == -1) {
-            return Status::NotFound("Could not queue song");
-        }
-
+		*/
+		Song s;
+		Status status = getSongFromId(s, songId);
+		if (status != Status::OK()){
+			return status;
+		}
+		
         lock_guard<mutex> lock(queue_lock_);
         song_queue_.push_back(s);
 
@@ -456,7 +459,30 @@ namespace internal {
 		return Status::OK();
 	}
 
-    Status Sqlite3Store::setActivity(std::string userId, int64_t timestamp) {
+    Status Sqlite3Store::getBuffer(ResultSet<Song>& set) {
+        vector<Song>& set_data = ResultSetMutator::getVector(set);
+        set_data.clear();
+
+        lock_guard<mutex> lock(buffer_lock_);
+        copy(song_buffer_.begin(), song_buffer_.end(), back_inserter(set_data));
+
+		return Status::OK();
+	}
+    
+    Status Sqlite3Store::bufferSong(int songId) {
+		Song s;
+		Status status = getSongFromId(s, songId);
+		if (status != Status::OK()){
+			return status;
+		}
+		
+        lock_guard<mutex> lock(buffer_lock_);
+        song_buffer_.push_back(s);
+
+		return Status::OK();
+	}
+    
+	Status Sqlite3Store::setActivity(std::string userId, int64_t timestamp) {
         sqlite3_stmt* statement = 0;
 
         // SQLite3 does not support an INSERT OR UPDATE query, so we have
@@ -868,6 +894,49 @@ namespace internal {
             return Status::Error(sqlite3_errmsg(db_));
         }
 
+		return Status::OK();
+	}
+
+    Status Sqlite3Store::getSongFromId(Song& s, int songId) {
+        // Get song from the database, and insert into queue.
+        sqlite3_stmt* statement = 0;
+
+        string query =
+            "SELECT Songs.SongID, Songs.Name, Artists.ArtistID, Artists.Name, Genres.GenreID, Genres.Name FROM Songs "
+            "LEFT JOIN Artists   ON Songs.ArtistID = Artists.ArtistID "
+            "LEFT JOIN Genres    ON Songs.GenreID  = Genres.GenreID "
+            "WHERE Songs.SongID = " + to_string(songId);
+
+        int result = 0;
+        s.id = -1;
+
+        sqlite3_prepare_v2(db_, query.c_str(), -1, &statement, 0);
+        while ((result = sqlite3_step(statement)) == SQLITE_ROW) {
+            s.id          = sqlite3_column_int(statement, 0);
+            s.name        = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 1)));
+            s.last_played = 0;
+
+            s.artist.id   = sqlite3_column_int(statement, 2);
+            if (s.artist.id > 0) {
+                s.artist.name = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 3)));
+            }
+
+            s.genre.id    = sqlite3_column_int(statement, 4);
+            if (s.genre.id > 0) {
+                s.genre.name  = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 5)));
+            }
+        }
+
+        sqlite3_finalize(statement);
+
+        if (result != SQLITE_OK && result != SQLITE_DONE) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+		
+		if (s.id == -1) {
+            return Status::NotFound("Could not queue song");
+        }
+		
 		return Status::OK();
 	}
 }

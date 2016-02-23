@@ -37,7 +37,10 @@ namespace internal {
         Status queueSong(int songId);
         Status songFinished();
 
-        Status setActivity(std::string userId, int64_t timestamp);
+        Status getBuffer(ResultSet<Song>& set);
+        Status bufferSong(int songId);
+        
+	Status setActivity(std::string userId, int64_t timestamp);
 
         Status addSong(Song& song);
         Status addArtist(Artist& artist);
@@ -57,14 +60,17 @@ namespace internal {
         Status getSessionCount(int& result);
     private:
         Status insertUser(std::string userId);
-
+	Status getSongFromId(Song& s, int songId);
     private:
         sqlite3* db_;
 
         std::mutex queue_lock_;
         std::vector<Song> song_queue_;
-
-        int64_t session_id_;
+	
+        std::mutex buffer_lock_;
+        std::vector<Song> song_buffer_;
+        
+	int64_t session_id_;
     };
 }
 }
