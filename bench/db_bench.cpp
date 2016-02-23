@@ -21,7 +21,7 @@ void checkStatus(Status status) {
 
 void benchGetSongs() {
     DB* raw = 0;
-    checkStatus(open(raw, "bench.db", Options::Options()));
+    checkStatus(open(raw, "bench.db", Options()));
     shared_ptr<DB> db(raw);
 
     // Populate with a bunch of songs
