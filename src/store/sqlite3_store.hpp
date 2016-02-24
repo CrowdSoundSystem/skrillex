@@ -35,11 +35,12 @@ namespace internal {
 
         Status getQueue(ResultSet<Song>& set);
         Status queueSong(int songId);
+        Status clearQueue();
         Status songFinished();
 
         Status getBuffer(ResultSet<Song>& set);
         Status bufferSong(int songId);
-        
+
 	Status setActivity(std::string userId, int64_t timestamp);
 
         Status addSong(Song& song);
@@ -66,10 +67,10 @@ namespace internal {
 
         std::mutex queue_lock_;
         std::vector<Song> song_queue_;
-	
+
         std::mutex buffer_lock_;
         std::vector<Song> song_buffer_;
-        
+
 	int64_t session_id_;
     };
 }

@@ -23,12 +23,13 @@ namespace internal {
 
         virtual Status getQueue(ResultSet<Song>& set) = 0;
         virtual Status queueSong(int song_id) = 0;
+        virtual Status clearQueue() = 0;
         virtual Status songFinished() = 0;
 
         virtual Status getBuffer(ResultSet<Song>& set) = 0;
         virtual Status bufferSong(int song_id) = 0;
-        
-	virtual Status setActivity(std::string userId, int64_t timestamp) = 0;
+
+        virtual Status setActivity(std::string userId, int64_t timestamp) = 0;
 
         virtual Status addSong(Song& song) = 0;
         virtual Status addArtist(Artist& artist) = 0;

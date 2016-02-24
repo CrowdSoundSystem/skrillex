@@ -92,6 +92,14 @@ namespace skrillex {
         return store_->queueSong(song_id);
     }
 
+    Status DB::clearQueue() {
+        if (!isOpen()) {
+            return Status::Error("Database closed.");
+        }
+
+        return store_->clearQueue();
+    }
+
     Status DB::songFinished() {
         if (!isOpen()) {
             return Status::Error("Database closed.");
@@ -115,7 +123,7 @@ namespace skrillex {
 
         return store_->bufferSong(song_id);
     }
-    
+
     Status DB::setActivity(std::string userId, int64_t timestamp) {
         if (!isOpen()) {
             return Status::Error("Database closed.");
