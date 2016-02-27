@@ -76,6 +76,11 @@ struct ReadOptions {
     // Default: 300000 (5 minutes)
     int inactivity_threshold;
 
+    // Filter out songs that are currently buffered.
+    //
+    // Default: true
+    bool filter_buffered;
+
     ReadOptions();
 };
 

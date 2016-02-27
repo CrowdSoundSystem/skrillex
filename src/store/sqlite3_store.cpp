@@ -93,6 +93,12 @@ namespace internal {
             return Status::Error(sqlite3_errmsg(db_));
         }
 
+        set<int> song_buffer_ids;
+        if (options.filter_buffered) {
+            lock_guard<mutex> lock(buffer_lock_));
+            copy(song_buffer_ids_.begin(), song_buffer_ids_.end(), back_inserter(song_buffer_ids);
+        }
+
         int result = 0;
         bool completed = false;
         while ((result = sqlite3_step(statement)) == SQLITE_ROW) {
@@ -104,6 +110,12 @@ namespace internal {
             if (s.id == 0) {
                 completed = true;
                 break;
+            }
+
+            if (options.filter_buffered) {
+                if (song_buffer_ids.find(s.id) != song_buffer_ids.end()) {
+                    continue;
+                }
             }
 
             s.name        = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 1)));
