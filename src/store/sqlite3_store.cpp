@@ -97,8 +97,7 @@ namespace internal {
         std::set<int> song_buffer_ids;
         if (options.filter_buffered) {
             lock_guard<mutex> lock(buffer_lock_);
-            auto it = song_buffer_ids.begin();
-            copy(song_buffer_ids_.begin(), song_buffer_ids_.end(), inserter(song_buffer_ids, it));
+            copy(song_buffer_ids_.begin(), song_buffer_ids_.end(), inserter(song_buffer_ids, song_buffer_ids.begin()));
         }
 
         int result = 0;
@@ -436,6 +435,7 @@ namespace internal {
         {
             lock_guard<mutex> lock(buffer_lock_);
             song = song_buffer_.front();
+            song_buffer_ids_.erase(song.id);
             song_buffer_.erase(song_buffer_.begin());
         }
 
@@ -505,8 +505,8 @@ namespace internal {
         lock_guard<mutex> buffer_lock(buffer_lock_);
 
         copy(song_queue_.begin(), song_queue_.begin() + 1, back_inserter(song_buffer_));
+        song_buffer_ids_.insert(song_queue_.begin()->id);
         song_queue_.erase(song_queue_.begin());
-        song_buffer_ids_.insert(song_buffer_.begin()->id);
 
 		return Status::OK();
 	}
