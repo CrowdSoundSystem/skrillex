@@ -383,56 +383,71 @@ TEST(Sqlite3DatabaseTests, Activity) {
     }
 }
 
-TEST(Sqlite3DatabaseTests, Queue) {
+TEST(Sqlite3DatabaseTests, QueueBuffer) {
     DB* raw = 0;
     Status s = open(raw, "test.db", Options::TestOptions());
     ASSERT_EQ(Status::OK(), s);
 
     shared_ptr<DB> db(raw);
+    Store* store = StoreMutator::getStore(raw);
 
-    Genre g;
-    g.name = "genre";
+    PopulatorData data = get_populator_data(10, 3, 3);
+    ASSERT_EQ(Status::OK(), populate_empty(raw, 10, 3, 3));
 
-    Artist a;
-    a.name = "artist";
+    // Queue all of the songs
+    for (int i = 0; i < data.songs.size(); i++) {
+        EXPECT_EQ(Status::OK(), db->queueSong(data.songs[i].id));
 
-    EXPECT_EQ(Status::OK(), db->addGenre(g));
-    EXPECT_EQ(Status::OK(), db->addArtist(a));
-
-    Song song;
-    song.name = "song";
-    song.artist = a;
-    song.genre = g;
-
-    EXPECT_EQ(Status::OK(), db->addSong(song));
-    EXPECT_EQ(0, song.last_played);
-    EXPECT_EQ(Status::OK(), db->queueSong(song.id));
-
-    ResultSet<Song> queue;
-    EXPECT_EQ(Status::OK(), db->getQueue(queue));
-    EXPECT_EQ(1, queue.size());
-
-    auto r = queue.begin();
-    EXPECT_EQ(song, *r);
-
-    // Make sure last played gets update properly
-    uint64_t last_played = 0;
-    for (int i = 0; i < 2; i++) {
-        EXPECT_EQ(Status::OK(), db->songFinished());
+        ResultSet<Song> queue;
         EXPECT_EQ(Status::OK(), db->getQueue(queue));
-        EXPECT_EQ(0, queue.size());
+        EXPECT_EQ(i + 1, queue.size());
+    }
 
-        ResultSet<Song> songs;
-        EXPECT_EQ(Status::OK(), db->getSongs(songs));
-        EXPECT_EQ(1, songs.size());
+    // Verify the final queue
+    int id = 0;
+    ResultSet<Song> queue;
+    for (auto it = queue.begin(); it != queue.end(); it++,id++) {
+        EXPECT_EQ(data.songs[id], *it);
+    }
 
-        r = songs.begin();
-        EXPECT_LT(0, r->last_played);
-        EXPECT_LT(last_played, r->last_played);
-        last_played = r->last_played;
+    // Test buffer
+    ResultSet<Song> buffer;
+    EXPECT_EQ(Status::OK(), db->getBuffer(buffer));
+    EXPECT_EQ(Status::OK(), db->getQueue(queue));
+    for (int i = 0; i < 10; i++) {
+        int originalBufferSize = buffer.size();
+        int originalQueueSize = queue.size();
 
-        EXPECT_EQ(Status::OK(), db->queueSong(song.id));
-        this_thread::sleep_for(chrono::milliseconds(100));
+        // Move from queue into buffer
+        EXPECT_EQ(Status::OK(), db->bufferNext());
+
+        // Make sure song moved over
+        EXPECT_EQ(Status::OK(), db->getBuffer(buffer));
+        EXPECT_EQ(Status::OK(), db->getQueue(queue));
+        EXPECT_EQ(originalQueueSize - 1, queue.size());
+        EXPECT_EQ(originalBufferSize + 1, buffer.size());
+    }
+
+    // Test bufferNext() with empty queue
+    s = db->bufferNext();
+    EXPECT_TRUE(s.error());
+    EXPECT_EQ("Queue empty", s.message());
+
+    // Test songFinished
+    for (int i = 0; i < 10; i++) {
+        Song head = *buffer.begin();
+        EXPECT_EQ(0, head.last_played);
+
+        int originalBufferSize = buffer.size();
+
+        EXPECT_EQ(Status::OK(), db->songFinished());
+        EXPECT_EQ(Status::OK(), db->getBuffer(buffer));
+        EXPECT_EQ(originalBufferSize - 1, buffer.size());
+
+        // Make sure last played was updated
+        Song lastPlayed;
+        EXPECT_EQ(Status::OK(), store->getSongFromId(lastPlayed, head.id));
+        EXPECT_LT(0, lastPlayed.last_played);
     }
 }
 

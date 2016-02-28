@@ -31,23 +31,25 @@ namespace internal {
         Status getArtists(ResultSet<Artist>& set, ReadOptions options);
         Status getGenres(ResultSet<Genre>& set, ReadOptions options);
 
+        Status getSongFromId(Song& s, int songId);
+
         Status getPlayHistory(ResultSet<Song>& set, ReadOptions options);
 
         Status getQueue(ResultSet<Song>& set);
         Status queueSong(int songId);
-        Status songFinished();
-
-        Status getBuffer(ResultSet<Song>& set);
-        Status bufferSong(int songId);
         Status clearQueue();
 
-	Status setActivity(std::string userId, int64_t timestamp);
+        Status getBuffer(ResultSet<Song>& set);
+        Status bufferNext();
+        Status songFinished();
+
+        Status setActivity(std::string userId, int64_t timestamp);
 
         Status addSong(Song& song);
         Status addArtist(Artist& artist);
         Status addGenre(Genre& genre);
 
-        Status insertNormalized(std::string normalized, int songID, int artistID, int genreID);
+        Status insertNormalized(std::string normalized, int songId, int artistId, int genreId);
         Status getNormalized(Song& song, std::string normalizedName);
 
         Status voteSong(std::string userId, Song& song, int amount, WriteOptions options);
@@ -61,7 +63,6 @@ namespace internal {
         Status getSessionCount(int& result);
     private:
         Status insertUser(std::string userId);
-	Status getSongFromId(Song& s, int songId);
     private:
         sqlite3* db_;
 

@@ -19,23 +19,25 @@ namespace internal {
         virtual Status getArtists(ResultSet<Artist>& set, ReadOptions options) = 0;
         virtual Status getGenres(ResultSet<Genre>& set, ReadOptions options) = 0;
 
+        virtual Status getSongFromId(Song& song, int songId) = 0;
+
         virtual Status getPlayHistory(ResultSet<Song>& set, ReadOptions options) = 0;
 
         virtual Status getQueue(ResultSet<Song>& set) = 0;
         virtual Status queueSong(int song_id) = 0;
         virtual Status clearQueue() = 0;
-        virtual Status songFinished() = 0;
 
         virtual Status getBuffer(ResultSet<Song>& set) = 0;
-        virtual Status bufferSong(int song_id) = 0;
+        virtual Status bufferNext() = 0;
+        virtual Status songFinished() = 0;
 
-        virtual Status setActivity(std::string userId, int64_t timestamp) = 0;
+        virtual Status setActivity(std::string userID, int64_t timestamp) = 0;
 
         virtual Status addSong(Song& song) = 0;
         virtual Status addArtist(Artist& artist) = 0;
         virtual Status addGenre(Genre& genre) = 0;
 
-        virtual Status insertNormalized(std::string normalized, int songID, int artistID, int genreID) = 0;
+        virtual Status insertNormalized(std::string normalized, int songId, int artistId, int genreId) = 0;
         virtual Status getNormalized(Song& song, std::string normalizedName) = 0;
 
         virtual Status voteSong(std::string userId, Song& s, int amount, WriteOptions options) = 0;

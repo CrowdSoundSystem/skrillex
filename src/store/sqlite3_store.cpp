@@ -1,4 +1,5 @@
 #include <iostream>
+#include <set>
 
 #include "skrillex/result_set.hpp"
 #include "sqlite3/sqlite3.h"
@@ -93,10 +94,11 @@ namespace internal {
             return Status::Error(sqlite3_errmsg(db_));
         }
 
-        set<int> song_buffer_ids;
+        std::set<int> song_buffer_ids;
         if (options.filter_buffered) {
-            lock_guard<mutex> lock(buffer_lock_));
-            copy(song_buffer_ids_.begin(), song_buffer_ids_.end(), back_inserter(song_buffer_ids);
+            lock_guard<mutex> lock(buffer_lock_);
+            auto it = song_buffer_ids.begin();
+            copy(song_buffer_ids_.begin(), song_buffer_ids_.end(), inserter(song_buffer_ids, it));
         }
 
         int result = 0;
@@ -301,6 +303,49 @@ namespace internal {
 		return Status::OK();
 	}
 
+    Status Sqlite3Store::getSongFromId(Song& s, int songId) {
+        sqlite3_stmt* statement = 0;
+
+        string query =
+            "SELECT Songs.SongID, Songs.Name, PlayHistory.Timestamp, Artists.ArtistID, Artists.Name, Genres.GenreID, Genres.Name FROM Songs "
+            "LEFT JOIN Artists     ON Songs.ArtistID = Artists.ArtistID "
+            "LEFT JOIN Genres      ON Songs.GenreID  = Genres.GenreID "
+            "LEFT JOIN PlayHistory ON Songs.SongID   = PlayHistory.SongID AND PlayHistory.SessionID = " + to_string(session_id_) + " "
+            "WHERE Songs.SongID = " + to_string(songId);
+
+        int result = 0;
+        s.id = -1;
+
+        sqlite3_prepare_v2(db_, query.c_str(), -1, &statement, 0);
+        while ((result = sqlite3_step(statement)) == SQLITE_ROW) {
+            s.id          = sqlite3_column_int(statement, 0);
+            s.name        = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 1)));
+            s.last_played = sqlite3_column_int64(statement, 2);
+
+            s.artist.id   = sqlite3_column_int(statement, 3);
+            if (s.artist.id > 0) {
+                s.artist.name = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 4)));
+            }
+
+            s.genre.id    = sqlite3_column_int(statement, 5);
+            if (s.genre.id > 0) {
+                s.genre.name  = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 6)));
+            }
+        }
+
+        sqlite3_finalize(statement);
+
+        if (result != SQLITE_OK && result != SQLITE_DONE) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+
+		if (s.id == -1) {
+            return Status::NotFound("Could not find song");
+        }
+
+		return Status::OK();
+	}
+
     Status Sqlite3Store::getPlayHistory(ResultSet<Song>& set, ReadOptions options) {
         vector<Song>& set_data =  ResultSetMutator::getVector<Song>(set);
         set_data.clear();
@@ -382,16 +427,16 @@ namespace internal {
         return Status::OK();
     }
     Status Sqlite3Store::songFinished() {
-        if (song_queue_.empty()) {
-            return Status::Error("Queue empty");
+        if (song_buffer_.empty()) {
+            return Status::Error("Buffer empty");
         }
 
         Song song;
 
         {
-            lock_guard<mutex> lock(queue_lock_);
-            song = song_queue_.front();
-            song_queue_.erase(song_queue_.begin());
+            lock_guard<mutex> lock(buffer_lock_);
+            song = song_buffer_.front();
+            song_buffer_.erase(song_buffer_.begin());
         }
 
         song.last_played = timestamp();
@@ -450,15 +495,18 @@ namespace internal {
 		return Status::OK();
 	}
 
-    Status Sqlite3Store::bufferSong(int songId) {
-		Song s;
-		Status status = getSongFromId(s, songId);
-		if (status != Status::OK()){
-			return status;
-		}
+    Status Sqlite3Store::bufferNext() {
+        lock_guard<mutex> queue_lock(queue_lock_);
 
-        lock_guard<mutex> lock(buffer_lock_);
-        song_buffer_.push_back(s);
+        if (song_queue_.empty()) {
+            return Status::Error("Queue empty");
+        }
+
+        lock_guard<mutex> buffer_lock(buffer_lock_);
+
+        copy(song_queue_.begin(), song_queue_.begin() + 1, back_inserter(song_buffer_));
+        song_queue_.erase(song_queue_.begin());
+        song_buffer_ids_.insert(song_buffer_.begin()->id);
 
 		return Status::OK();
 	}
@@ -602,7 +650,7 @@ namespace internal {
 		return Status::OK();
 	}
 
-    Status Sqlite3Store::insertNormalized(string normalized, int songID, int artistID, int genreID) {
+    Status Sqlite3Store::insertNormalized(string normalized, int songId, int artistId, int genreId) {
         sqlite3_stmt* statement = 0;
 
         string query = "REPLACE INTO `Normalized` (`Normalized`, `SongID`, `ArtistID`, `GenreID`) VALUES (?, ?, ?, ?)";
@@ -615,14 +663,14 @@ namespace internal {
             return Status::Error(sqlite3_errmsg(db_));
         }
 
-        if (sqlite3_bind_int(statement, 2, songID)) {
+        if (sqlite3_bind_int(statement, 2, songId)) {
             return Status::Error(sqlite3_errmsg(db_));
         }
 
-        if (sqlite3_bind_int(statement, 3, artistID)) {
+        if (sqlite3_bind_int(statement, 3, artistId)) {
             return Status::Error(sqlite3_errmsg(db_));
         }
-        if (sqlite3_bind_int(statement, 4, genreID)) {
+        if (sqlite3_bind_int(statement, 4, genreId)) {
             return Status::Error(sqlite3_errmsg(db_));
         }
 
@@ -878,48 +926,6 @@ namespace internal {
 		return Status::OK();
 	}
 
-    Status Sqlite3Store::getSongFromId(Song& s, int songId) {
-        // Get song from the database, and insert into queue.
-        sqlite3_stmt* statement = 0;
-
-        string query =
-            "SELECT Songs.SongID, Songs.Name, Artists.ArtistID, Artists.Name, Genres.GenreID, Genres.Name FROM Songs "
-            "LEFT JOIN Artists   ON Songs.ArtistID = Artists.ArtistID "
-            "LEFT JOIN Genres    ON Songs.GenreID  = Genres.GenreID "
-            "WHERE Songs.SongID = " + to_string(songId);
-
-        int result = 0;
-        s.id = -1;
-
-        sqlite3_prepare_v2(db_, query.c_str(), -1, &statement, 0);
-        while ((result = sqlite3_step(statement)) == SQLITE_ROW) {
-            s.id          = sqlite3_column_int(statement, 0);
-            s.name        = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 1)));
-            s.last_played = 0;
-
-            s.artist.id   = sqlite3_column_int(statement, 2);
-            if (s.artist.id > 0) {
-                s.artist.name = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 3)));
-            }
-
-            s.genre.id    = sqlite3_column_int(statement, 4);
-            if (s.genre.id > 0) {
-                s.genre.name  = string(reinterpret_cast<const char*>(sqlite3_column_text(statement, 5)));
-            }
-        }
-
-        sqlite3_finalize(statement);
-
-        if (result != SQLITE_OK && result != SQLITE_DONE) {
-            return Status::Error(sqlite3_errmsg(db_));
-        }
-
-		if (s.id == -1) {
-            return Status::NotFound("Could not queue song");
-        }
-
-		return Status::OK();
-	}
 }
 }
 
