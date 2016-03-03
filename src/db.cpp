@@ -179,4 +179,17 @@ namespace skrillex {
 
         return store_->voteGenre(userId, genre, amount, WriteOptions());
     }
+
+
+    Status DB::getSessionUserCount(int& userCount) {
+        return getSessionUserCount(userCount, ReadOptions());
+    }
+
+    Status DB::getSessionUserCount(int& userCount, ReadOptions options) {
+        if (!isOpen()) {
+            return Status::Error("Database closed.");
+        }
+
+        return store_->getSessionUserCount(userCount, options);
+    }
 }

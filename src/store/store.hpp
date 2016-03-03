@@ -49,6 +49,8 @@ namespace internal {
 
         virtual Status getSession(int64_t& result) = 0;
         virtual Status getSessionCount(int& result) = 0;
+
+        virtual Status getSessionUserCount(int& userCount, ReadOptions options) = 0;
     };
 }
 }

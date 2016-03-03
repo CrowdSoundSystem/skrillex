@@ -61,8 +61,11 @@ namespace internal {
 
         Status getSession(int64_t& result);
         Status getSessionCount(int& result);
+
+        Status getSessionUserCount(int& userCount, ReadOptions options);
     private:
         Status insertUser(std::string userId);
+
     private:
         sqlite3* db_;
 

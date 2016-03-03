@@ -74,6 +74,8 @@ namespace skrillex {
         Status voteArtist(std::string userId, Artist& artist, int amount);
         Status voteGenre(std::string userId, Genre& genre, int amount);
 
+        Status getSessionUserCount(int& userCount);
+        Status getSessionUserCount(int& userCount, ReadOptions options);
     private:
         DB(std::string path, Options options);
         DB(const DB& other)  = delete;

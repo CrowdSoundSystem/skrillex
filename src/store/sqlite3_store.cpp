@@ -926,6 +926,32 @@ namespace internal {
 		return Status::OK();
 	}
 
+    Status Sqlite3Store::getSessionUserCount(int& userCount, ReadOptions options) {
+        sqlite3_stmt* statement = 0;
+
+        string query = "SELECT COUNT(*) FROM UserActivity WHERE LastActive > ?";
+
+        if (sqlite3_prepare_v2(db_, query.c_str(), -1, &statement, 0)) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+
+        if (sqlite3_bind_int64(statement, 1, timestamp() - options.inactivity_threshold)) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+
+        int r = 0;
+        while ((r = sqlite3_step(statement)) == SQLITE_ROW) {
+            userCount = sqlite3_column_int(statement, 0);
+        }
+
+        sqlite3_finalize(statement);
+
+        if (r != SQLITE_OK && r != SQLITE_DONE) {
+            return Status::Error(sqlite3_errmsg(db_));
+        }
+
+        return Status::OK();
+    }
 }
 }
 
