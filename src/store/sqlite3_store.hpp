@@ -52,6 +52,8 @@ namespace internal {
         Status insertNormalized(std::string normalized, int songId, int artistId, int genreId);
         Status getNormalized(Song& song, std::string normalizedName);
 
+        Status markUnplayable(int songId);
+
         Status voteSong(std::string userId, Song& song, int amount, WriteOptions options);
         Status voteArtist(std::string userId, Artist& artist, int amount, WriteOptions options);
         Status voteGenre(std::string userId, Genre& genre, int amount, WriteOptions options);
@@ -71,10 +73,12 @@ namespace internal {
 
         std::mutex queue_lock_;
         std::vector<Song> song_queue_;
+        std::set<int> unplayable_song_ids_;
 
         std::mutex buffer_lock_;
         std::set<int> song_buffer_ids_;
         std::vector<Song> song_buffer_;
+
 
 	int64_t session_id_;
     };

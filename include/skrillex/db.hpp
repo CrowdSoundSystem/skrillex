@@ -70,6 +70,8 @@ namespace skrillex {
         Status addArtist(Artist& artist);
         Status addGenre(Genre& genre);
 
+        Status markUnplayable(int songId);
+
         Status voteSong(std::string userId, Song& song, int amount);
         Status voteArtist(std::string userId, Artist& artist, int amount);
         Status voteGenre(std::string userId, Genre& genre, int amount);

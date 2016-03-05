@@ -37,6 +37,8 @@ namespace internal {
         virtual Status addArtist(Artist& artist) = 0;
         virtual Status addGenre(Genre& genre) = 0;
 
+        virtual Status markUnplayable(int songId) = 0;
+
         virtual Status insertNormalized(std::string normalized, int songId, int artistId, int genreId) = 0;
         virtual Status getNormalized(Song& song, std::string normalizedName) = 0;
 

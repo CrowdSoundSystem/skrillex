@@ -156,6 +156,14 @@ namespace skrillex {
         return store_->addGenre(genre);
     }
 
+    Status DB::markUnplayable(int songId) {
+        if (!isOpen()) {
+            return Status::Error("Database closed.");
+        }
+
+        return store_->markUnplayable(songId);
+    }
+
     Status DB::voteSong(std::string userId, Song& song, int amount) {
         if (!isOpen()) {
             return Status::Error("Database closed.");

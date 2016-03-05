@@ -449,6 +449,12 @@ TEST(Sqlite3DatabaseTests, QueueBuffer) {
         EXPECT_EQ(Status::OK(), store->getSongFromId(lastPlayed, head.id));
         EXPECT_LT(0, lastPlayed.last_played);
     }
+
+    // Test that unplayable songs do not get added to queue.
+    EXPECT_EQ(Status::OK(), db->markUnplayable(data.songs[0].id));
+    EXPECT_EQ(Status::OK(), db->queueSong(data.songs[0].id));
+    EXPECT_EQ(Status::OK(), db->getQueue(queue));
+    EXPECT_EQ(0, queue.size());
 }
 
 TEST(Sqlite3DatabaseTests, Normalized) {

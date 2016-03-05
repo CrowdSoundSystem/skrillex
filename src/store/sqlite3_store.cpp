@@ -408,6 +408,13 @@ namespace internal {
 		return Status::OK();
 	}
     Status Sqlite3Store::queueSong(int songId) {
+        {
+            lock_guard<mutex> lock(queue_lock_);
+            if (unplayable_song_ids_.find(songId) != unplayable_song_ids_.end()) {
+                return Status::OK();
+            }
+        }
+
         Song s;
 		Status status = getSongFromId(s, songId);
 		if (status != Status::OK()){
@@ -736,6 +743,12 @@ namespace internal {
             return Status::NotFound("Could not find normalized entry");
         }
 
+        return Status::OK();
+    }
+
+    Status Sqlite3Store::markUnplayable(int songId) {
+        lock_guard<mutex> lock(queue_lock_);
+        unplayable_song_ids_.insert(song_id);
         return Status::OK();
     }
 
