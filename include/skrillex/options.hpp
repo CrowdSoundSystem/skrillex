@@ -73,7 +73,7 @@ struct ReadOptions {
     // there data is no longer returned. If zero, then a
     // user can be inactive an infinite amount of time.
     //
-    // Default: 300000 (5 minutes)
+    // Default: 1 800 000 (30 minutes)
     int inactivity_threshold;
 
     // Filter out songs that are currently buffered.

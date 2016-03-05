@@ -14,7 +14,7 @@ namespace skrillex {
     , result_limit(0)
     , sort(SortType::Counts)
     , filter_buffered(true)
-    , inactivity_threshold(300000)
+    , inactivity_threshold(1800000)
     {
     }
 
