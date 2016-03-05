@@ -748,7 +748,7 @@ namespace internal {
 
     Status Sqlite3Store::markUnplayable(int songId) {
         lock_guard<mutex> lock(queue_lock_);
-        unplayable_song_ids_.insert(song_id);
+        unplayable_song_ids_.insert(songId);
         return Status::OK();
     }
 
