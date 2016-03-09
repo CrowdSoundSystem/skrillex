@@ -62,6 +62,7 @@ namespace skrillex {
 
         Status getBuffer(ResultSet<Song>& buffer);
         Status bufferNext();
+        Status removeFromBuffer(int songId);
         Status songFinished();
 
         Status setActivity(std::string userId, int64_t timestamp);

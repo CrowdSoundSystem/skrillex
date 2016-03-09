@@ -29,6 +29,7 @@ namespace internal {
 
         virtual Status getBuffer(ResultSet<Song>& set) = 0;
         virtual Status bufferNext() = 0;
+        virtual Status removeFromBuffer(int songId) = 0;
         virtual Status songFinished() = 0;
 
         virtual Status setActivity(std::string userID, int64_t timestamp) = 0;

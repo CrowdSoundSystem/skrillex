@@ -41,6 +41,7 @@ namespace internal {
 
         Status getBuffer(ResultSet<Song>& set);
         Status bufferNext();
+        Status removeFromBuffer(int songId);
         Status songFinished();
 
         Status setActivity(std::string userId, int64_t timestamp);

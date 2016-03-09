@@ -432,6 +432,57 @@ namespace internal {
 
         return Status::OK();
     }
+
+    Status Sqlite3Store::getBuffer(ResultSet<Song>& set) {
+        vector<Song>& set_data = ResultSetMutator::getVector(set);
+        set_data.clear();
+
+        lock_guard<mutex> lock(buffer_lock_);
+        copy(song_buffer_.begin(), song_buffer_.end(), back_inserter(set_data));
+
+		return Status::OK();
+	}
+
+    Status Sqlite3Store::bufferNext() {
+        lock_guard<mutex> queue_lock(queue_lock_);
+
+        if (song_queue_.empty()) {
+            return Status::Error("Queue empty");
+        }
+
+        lock_guard<mutex> buffer_lock(buffer_lock_);
+
+        copy(song_queue_.begin(), song_queue_.begin() + 1, back_inserter(song_buffer_));
+        song_buffer_ids_.insert(song_queue_.begin()->id);
+        song_queue_.erase(song_queue_.begin());
+
+		return Status::OK();
+	}
+
+    Status Sqlite3Store::removeFromBuffer(int songId) {
+        lock_guard<mutex> lock(buffer_lock_);
+
+        if (song_buffer_.empty()) {
+            return Status::OK();
+        }
+
+        // Locate the first instance of songId.
+        auto pos = song_buffer_.end();
+        for (auto it = song_buffer_.begin(); it != song_buffer_.end(); it++) {
+            if (it->id == songId) {
+                pos = it;
+                break;
+            }
+        }
+
+        if (pos == song_buffer_.end()) {
+            return Status::NotFound("Could not remove song from buffer");
+        }
+
+        song_buffer_.erase(pos);
+        return Status::OK();
+    }
+
     Status Sqlite3Store::songFinished() {
         if (song_buffer_.empty()) {
             return Status::Error("Buffer empty");
@@ -488,32 +539,6 @@ namespace internal {
         if (r != SQLITE_OK && r != SQLITE_DONE) {
             return Status::Error(sqlite3_errmsg(db_));
         }
-
-		return Status::OK();
-	}
-
-    Status Sqlite3Store::getBuffer(ResultSet<Song>& set) {
-        vector<Song>& set_data = ResultSetMutator::getVector(set);
-        set_data.clear();
-
-        lock_guard<mutex> lock(buffer_lock_);
-        copy(song_buffer_.begin(), song_buffer_.end(), back_inserter(set_data));
-
-		return Status::OK();
-	}
-
-    Status Sqlite3Store::bufferNext() {
-        lock_guard<mutex> queue_lock(queue_lock_);
-
-        if (song_queue_.empty()) {
-            return Status::Error("Queue empty");
-        }
-
-        lock_guard<mutex> buffer_lock(buffer_lock_);
-
-        copy(song_queue_.begin(), song_queue_.begin() + 1, back_inserter(song_buffer_));
-        song_buffer_ids_.insert(song_queue_.begin()->id);
-        song_queue_.erase(song_queue_.begin());
 
 		return Status::OK();
 	}

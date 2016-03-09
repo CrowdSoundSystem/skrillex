@@ -100,14 +100,6 @@ namespace skrillex {
         return store_->clearQueue();
     }
 
-    Status DB::songFinished() {
-        if (!isOpen()) {
-            return Status::Error("Database closed.");
-        }
-
-        return store_->songFinished();
-    }
-
     Status DB::getBuffer(ResultSet<Song>& set) {
         if (!isOpen()) {
             return Status::Error("Database closed.");
@@ -123,6 +115,23 @@ namespace skrillex {
 
         return store_->bufferNext();
     }
+
+    Status DB::removeFromBuffer(int songId) {
+        if (!isOpen()) {
+            return Status::Error("Database closed.");
+        }
+
+        return store_->removeFromBuffer(songId);
+    }
+
+    Status DB::songFinished() {
+        if (!isOpen()) {
+            return Status::Error("Database closed.");
+        }
+
+        return store_->songFinished();
+    }
+
 
     Status DB::setActivity(std::string userId, int64_t timestamp) {
         if (!isOpen()) {
