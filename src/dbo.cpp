@@ -2,9 +2,32 @@
 
 namespace skrillex {
     Countable::Countable() : count(0), votes(0) {}
+
     Artist::Artist() : id(0), name(""), last_played(0) {}
+    Artist::Artist(const Artist& o)
+    : id(o.id)
+    , name(o.name)
+    , last_played(o.last_played)
+    {
+    }
+
     Genre::Genre() : id(0), name(""), last_played(0) {}
+    Genre::Genre(const Genre& o)
+    : id(o.id)
+    , name(o.name)
+    , last_played(o.last_played)
+    {
+    }
+
     Song::Song() : id(0), name(""), last_played(0) {}
+    Song::Song(const Song& o)
+    : id(o.id)
+    , name(o.name)
+    , last_played(o.last_played)
+    , artist(o.artist)
+    , genre(o.genre)
+    {
+    }
 
     bool operator==(const Artist& a, const Artist& b) {
         return a.id == b.id;

@@ -21,6 +21,7 @@ struct Countable {
 
 struct Artist : public Countable {
     Artist();
+    Artist(const Artist&);
 
     int         id;
     std::string name;
@@ -34,6 +35,7 @@ struct Artist : public Countable {
 
 struct Genre : public Countable {
     Genre();
+    Genre(const Genre&);
 
     int         id;
     std::string name;
@@ -46,6 +48,7 @@ struct Genre : public Countable {
 
 struct Song : public Countable {
     Song();
+    Song(const Song&);
 
     int         id;
     Artist      artist;
