@@ -21,6 +21,7 @@
 #include <memory>
 #include <queue>
 #include <string>
+#include <vector>
 
 #include "skrillex/options.hpp"
 #include "skrillex/result_set.hpp"
@@ -56,6 +57,7 @@ namespace skrillex {
         Status getPlayHistory(ResultSet<Song>& set);
         Status getPlayHistory(ResultSet<Song>& set, ReadOptions options);
 
+        Status setQueue(std::vector<int> songIds);
         Status getQueue(ResultSet<Song>& set);
         Status queueSong(int song_id);
         Status clearQueue();

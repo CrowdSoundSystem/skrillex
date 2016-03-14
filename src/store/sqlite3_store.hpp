@@ -35,6 +35,7 @@ namespace internal {
 
         Status getPlayHistory(ResultSet<Song>& set, ReadOptions options);
 
+        Status setQueue(std::vector<int> songIds);
         Status getQueue(ResultSet<Song>& set);
         Status queueSong(int songId);
         Status clearQueue();
@@ -72,7 +73,7 @@ namespace internal {
     private:
         sqlite3* db_;
 
-        std::mutex queue_lock_;
+        std::recursive_mutex queue_lock_;
         std::vector<Song> song_queue_;
         std::set<int> unplayable_song_ids_;
 

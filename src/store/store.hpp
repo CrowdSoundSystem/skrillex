@@ -2,6 +2,7 @@
 #define skrillex_store_hpp
 
 #include <string>
+#include <vector>
 
 #include "skrillex/options.hpp"
 #include "skrillex/result_set.hpp"
@@ -23,6 +24,7 @@ namespace internal {
 
         virtual Status getPlayHistory(ResultSet<Song>& set, ReadOptions options) = 0;
 
+        virtual Status setQueue(std::vector<int> songIds) = 0;
         virtual Status getQueue(ResultSet<Song>& set) = 0;
         virtual Status queueSong(int song_id) = 0;
         virtual Status clearQueue() = 0;

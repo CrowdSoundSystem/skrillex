@@ -1,4 +1,5 @@
 #include <string>
+#include <vector>
 
 #include "skrillex/db.hpp"
 #include "store/store.hpp"
@@ -74,6 +75,14 @@ namespace skrillex {
         }
 
         return store_->getGenres(rs, options);
+    }
+
+    Status DB::setQueue(vector<int> songIds) {
+        if (!isOpen()) {
+            return Status::Error("Database closed.");
+        }
+
+        return store_->setQueue(songIds);
     }
 
     Status DB::getQueue(ResultSet<Song>& set) {

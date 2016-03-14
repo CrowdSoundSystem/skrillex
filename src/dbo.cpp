@@ -8,6 +8,7 @@ namespace skrillex {
     : id(o.id)
     , name(o.name)
     , last_played(o.last_played)
+    , Countable(o)
     {
     }
 
@@ -16,6 +17,7 @@ namespace skrillex {
     : id(o.id)
     , name(o.name)
     , last_played(o.last_played)
+    , Countable(o)
     {
     }
 
@@ -26,6 +28,7 @@ namespace skrillex {
     , last_played(o.last_played)
     , artist(o.artist)
     , genre(o.genre)
+    , Countable(o)
     {
     }
 

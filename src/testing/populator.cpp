@@ -111,7 +111,6 @@ namespace testing {
             return status;
         }
 		if (songs.size() != num_songs) {
-            //cout << "Songs detected: " << songs.size() << endl;
 			return Status::Error("Invalid number of songs");
 		}
 

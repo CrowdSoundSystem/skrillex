@@ -393,7 +393,22 @@ namespace internal {
         }
 
 		return Status::OK();
-	}
+    }
+
+    Status Sqlite3Store::setQueue(vector<int> songIds) {
+        lock_guard<recursive_mutex> lock(queue_lock_);
+
+        song_queue_.clear();
+
+        for (auto it = songIds.begin(); it != songIds.end(); it++) {
+            Status s = queueSong(*it);
+            if (s != Status::OK()) {
+                return s;
+            }
+        }
+
+        return Status::OK();
+    }
 
     Status Sqlite3Store::getQueue(ResultSet<Song>& set) {
         // For now, there's not a huge motivation to put the
@@ -402,14 +417,14 @@ namespace internal {
         vector<Song>& set_data = ResultSetMutator::getVector(set);
         set_data.clear();
 
-        lock_guard<mutex> lock(queue_lock_);
+        lock_guard<recursive_mutex> lock(queue_lock_);
         copy(song_queue_.begin(), song_queue_.end(), back_inserter(set_data));
 
 		return Status::OK();
 	}
     Status Sqlite3Store::queueSong(int songId) {
         {
-            lock_guard<mutex> lock(queue_lock_);
+            lock_guard<recursive_mutex> lock(queue_lock_);
             if (unplayable_song_ids_.find(songId) != unplayable_song_ids_.end()) {
                 return Status::OK();
             }
@@ -421,13 +436,13 @@ namespace internal {
 			return status;
 		}
 
-        lock_guard<mutex> lock(queue_lock_);
+        lock_guard<recursive_mutex> lock(queue_lock_);
         song_queue_.push_back(s);
 
 		return Status::OK();
 	}
     Status Sqlite3Store::clearQueue() {
-        lock_guard<mutex> lock(queue_lock_);
+        lock_guard<recursive_mutex> lock(queue_lock_);
         song_queue_.clear();
 
         return Status::OK();
@@ -444,7 +459,7 @@ namespace internal {
 	}
 
     Status Sqlite3Store::bufferNext() {
-        lock_guard<mutex> queue_lock(queue_lock_);
+        lock_guard<recursive_mutex> queue_lock(queue_lock_);
 
         if (song_queue_.empty()) {
             return Status::Error("Queue empty");
@@ -772,7 +787,7 @@ namespace internal {
     }
 
     Status Sqlite3Store::markUnplayable(int songId) {
-        lock_guard<mutex> lock(queue_lock_);
+        lock_guard<recursive_mutex> lock(queue_lock_);
         unplayable_song_ids_.insert(songId);
         return Status::OK();
     }

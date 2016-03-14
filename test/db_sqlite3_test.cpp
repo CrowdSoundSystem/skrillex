@@ -129,8 +129,7 @@ TEST(Sqlite3DatabaseTests, PopulateFull) {
     ASSERT_EQ(Status::OK(), s);
 
     shared_ptr<DB> db(raw);
-    s = populate_full(raw, NUM_SONGS, NUM_ARTISTS, NUM_GENRES, 3);
-    EXPECT_EQ(Status::OK(), s);
+    EXPECT_EQ(Status::OK(), populate_full(raw, NUM_SONGS, NUM_ARTISTS, NUM_GENRES, 3));
 
     Store* store = StoreMutator::getStore(raw);
     PopulatorData data = get_populator_data(NUM_SONGS, NUM_ARTISTS, NUM_GENRES);
@@ -147,8 +146,8 @@ TEST(Sqlite3DatabaseTests, PopulateFull) {
     int max_votes  = 0;
 
     // Test vote ordering (non-default)
-    s = db->getSongs(songs, voteSort);
-    EXPECT_EQ(Status::OK(), s);
+    EXPECT_EQ(Status::OK(), db->getSongs(songs, voteSort));
+    EXPECT_EQ(NUM_SONGS, songs.size());
     int last_count = 0;
     int last_vote  = 10000;
     for (auto& s : songs) {
@@ -292,6 +291,7 @@ TEST(Sqlite3DatabaseTests, PopulateFull) {
     EXPECT_GT(max_votes, oldGenres.begin()->votes);
 }
 
+
 TEST(Sqlite3DatabaseTests, Activity) {
     DB* raw = 0;
     Status s = open(raw, "test.db", Options::TestOptions());
@@ -406,6 +406,7 @@ TEST(Sqlite3DatabaseTests, QueueBuffer) {
     // Verify the final queue
     int id = 0;
     ResultSet<Song> queue;
+    EXPECT_EQ(Status::OK(), db->getQueue(queue));
     for (auto it = queue.begin(); it != queue.end(); it++,id++) {
         EXPECT_EQ(data.songs[id], *it);
     }
@@ -455,6 +456,49 @@ TEST(Sqlite3DatabaseTests, QueueBuffer) {
     EXPECT_EQ(Status::OK(), db->queueSong(data.songs[0].id));
     EXPECT_EQ(Status::OK(), db->getQueue(queue));
     EXPECT_EQ(0, queue.size());
+}
+
+TEST(Sqlite3DatabaseTests, SetQueue) {
+    DB* raw = 0;
+    Status s = open(raw, "test.db", Options::TestOptions());
+    ASSERT_EQ(Status::OK(), s);
+
+    shared_ptr<DB> db(raw);
+    Store* store = StoreMutator::getStore(raw);
+
+    PopulatorData data = get_populator_data(10, 3, 3);
+    ASSERT_EQ(Status::OK(), populate_empty(raw, 10, 3, 3));
+
+    // Queue all of the songs
+    for (int i = 0; i < data.songs.size(); i++) {
+        EXPECT_EQ(Status::OK(), db->queueSong(data.songs[i].id));
+
+        ResultSet<Song> queue;
+        EXPECT_EQ(Status::OK(), db->getQueue(queue));
+        EXPECT_EQ(i + 1, queue.size());
+    }
+
+    // Verify the final queue
+    int id = 0;
+    ResultSet<Song> queue;
+    EXPECT_EQ(Status::OK(), db->getQueue(queue));
+    for (auto it = queue.begin(); it != queue.end(); it++,id++) {
+        EXPECT_EQ(data.songs[id], *it);
+    }
+
+    // Ensure that calling setQueue() replaces the current queue entirely.
+    vector<int> songIds;
+    for (int i = data.songs.size() - 1; i >= 0; i--) {
+        songIds.push_back(data.songs[i].id);
+    }
+
+    EXPECT_EQ(Status::OK(), db->setQueue(songIds));
+    EXPECT_EQ(Status::OK(), db->getQueue(queue));
+
+    id = data.songs.size() - 1;
+    for (auto it = queue.begin(); it != queue.end(); it++,id--) {
+        EXPECT_EQ(data.songs[id], *it);
+    }
 }
 
 TEST(Sqlite3DatabaseTests, Normalized) {
@@ -516,3 +560,4 @@ TEST(Sqlite3DatabaseTests, Normalized) {
     EXPECT_EQ(g.id, result.genre.id);
     EXPECT_EQ(g.name, result.genre.name);
 }
+
