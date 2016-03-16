@@ -43,6 +43,10 @@ namespace skrillex {
         // <song name, artist name> combination. If a song cannot be
         // found, Status::NotFound() is returned.
         Status lookup(Song& result, std::string song, std::string artist);
+
+        // Lookup attempts to lookup a corresponding artist for a given
+        // artist name. If an artist cannot be found, Status::NotFound() is returned.
+        Status lookup(Artist& result, std::string artist);
     };
 }
 

@@ -141,4 +141,17 @@ namespace skrillex {
         string nSong = combine(songName, artistName);
         return db_->store_->getNormalized(result, nSong);
     }
+
+    Status Mapper::lookup(Artist& result, string artistName) {
+        trim(artistName);
+
+        Song song;
+        Status s = db_->store_->getNormalized(song, normalize(FieldType::ArtistField, artistName));
+        if (s != Status::OK()) {
+            return s;
+        }
+
+        result = song.artist;
+        return Status::OK();
+    }
 }

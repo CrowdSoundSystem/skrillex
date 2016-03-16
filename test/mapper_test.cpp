@@ -93,6 +93,12 @@ TEST(MapperTests, Mapper) {
     EXPECT_EQ(1, song.id);
     EXPECT_EQ("Gay Fish", song.name);
 
+    // We can grab only artists
+    Artist artist;
+    EXPECT_EQ(Status::OK(), mapper.lookup(artist, "Kanye"));
+    EXPECT_EQ(1, artist.id);
+    EXPECT_EQ("Kanye", artist.name);
+
     // But fail for other cases
     song = Song();
     EXPECT_TRUE(mapper.lookup(song, "", "Kanye").error());
